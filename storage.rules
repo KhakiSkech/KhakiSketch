@@ -1,0 +1,34 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // 관리자 권한 검증 함수 (Firebase Custom Claims 기반)
+    function isAdmin() {
+      return request.auth != null &&
+             request.auth.token.admin == true;
+    }
+    
+    // 이미지 파일 검증
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // 파일 크기 제한 (10MB)
+    function isValidSize() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+    
+    // Images folder - 공개 읽기, 관리자만 쓰기
+    match /images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && isValidSize();
+    }
+    
+    // Uploads folder - 일시적 업로드 (관리자만)
+    match /uploads/{allPaths=**} {
+      allow read, write: if isAdmin() && isValidSize();
+    }
+  }
+}
+

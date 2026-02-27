@@ -1,0 +1,223 @@
+/* ===== Brochure Layout - Hide Header/Footer ===== */
+body:has(.brochure-wrapper) > header,
+body:has(.brochure-wrapper) > footer,
+body:has(.brochure-wrapper) > div:first-child {
+  display: none !important;
+}
+
+.brochure-wrapper {
+  background: white;
+}
+
+/* ===== Brochure / PDF Print Styles ===== */
+
+/* Print styles */
+@media print {
+  /* Hide non-print elements */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Force background colors to print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Disable animations */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Reset margins for print */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Avoid page breaks inside elements */
+.avoid-break {
+  page-break-inside: avoid;
+}
+
+/* Force page break */
+.page-break {
+  page-break-after: always;
+}
+
+/* ===== Landscape A4 Brochure Styles ===== */
+
+/* A4 Landscape page - 297mm x 210mm */
+.brochure-page-landscape {
+  width: 297mm;
+  height: 210mm;
+  padding: 15mm 20mm;
+  box-sizing: border-box;
+  position: relative;
+  background: white;
+  page-break-after: always;
+  page-break-inside: avoid;
+}
+
+.brochure-container-landscape {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  background: #f3f4f6;
+  min-height: 100vh;
+}
+
+/* Web preview styling for landscape */
+@media screen {
+  .brochure-page-landscape {
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+  }
+}
+
+/* Print styles for landscape - Override @page when landscape container exists */
+@media print {
+  /* Hide portrait @page styles when printing landscape */
+  body:has(.brochure-container-landscape) {
+    margin: 0;
+    padding: 0;
+  }
+
+  .brochure-container-landscape {
+    padding: 0;
+    background: white;
+  }
+
+  .brochure-page-landscape {
+    margin: 0;
+    box-shadow: none;
+    border: none;
+    width: 297mm;
+    height: 210mm;
+    padding: 15mm 20mm;
+    page-break-after: always;
+    page-break-inside: avoid;
+    overflow: hidden;
+  }
+}
+
+/* Landscape page rule - A4 Landscape */
+@page landscape-page {
+  size: A4 landscape;
+  margin: 0;
+}
+
+/* Apply landscape page to landscape brochure pages */
+.brochure-page-landscape {
+  page: landscape-page;
+}
+
+/* ===== Scroll-triggered Page Animations ===== */
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes contentReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Apply to brochure pages when they come into view */
+.brochure-page-landscape {
+  animation: pageSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Staggered content animations within pages */
+.brochure-page-landscape > div > * {
+  opacity: 0;
+  animation: contentReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.brochure-page-landscape > div > *:nth-child(1) { animation-delay: 0.1s; }
+.brochure-page-landscape > div > *:nth-child(2) { animation-delay: 0.2s; }
+.brochure-page-landscape > div > *:nth-child(3) { animation-delay: 0.3s; }
+.brochure-page-landscape > div > *:nth-child(4) { animation-delay: 0.4s; }
+.brochure-page-landscape > div > *:nth-child(5) { animation-delay: 0.5s; }
+
+/* Page hover effect */
+@media screen {
+  .brochure-page-landscape:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+}
+
+/* ===== Responsive Brochure Viewer ===== */
+@media screen and (max-width: 768px) {
+  .brochure-container-landscape {
+    padding: 20px 10px;
+  }
+
+  .brochure-page-landscape {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    padding: 16px;
+  }
+}
+
+/* ===== Enhanced Print Styles ===== */
+@media print {
+  /* Better text rendering */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* CRITICAL: Force all content to be visible (override animation opacity) */
+  .brochure-page-landscape,
+  .brochure-page-landscape *,
+  .brochure-page-landscape > div,
+  .brochure-page-landscape > div > * {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    animation: none !important;
+  }
+
+  /* Ensure proper page breaks */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+
+  p, blockquote, ul, ol {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Hide decorative elements that don't print well */
+  .blur-3xl,
+  .blur-2xl {
+    display: none;
+  }
+
+  /* Ensure links are visible */
+  a[href]:after {
+    content: none;
+  }
+}

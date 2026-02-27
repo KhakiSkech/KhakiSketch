@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 관리자 권한 검증 함수 (Firebase Custom Claims 기반)
+    function isAdmin() {
+      return request.auth != null &&
+             request.auth.token.admin == true;
+    }
+
+    // Projects collection - 공개 읽기, 관리자만 쓰기
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Articles collection - 공개 읽기, 관리자만 쓰기
+    match /articles/{articleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Site settings collection - 공개 읽기, 관리자만 쓰기
+    match /site-settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Admin settings - 관리자만 접근 가능
+    match /admin/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin config (관리자 이메일 목록 등) - 관리자만 읽기/쓰기 가능
+    match /admin-config/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Quote Leads (견적/CRM)
+    // 비인증 사용자도 견적 제출(create) 가능, 읽기/수정/삭제는 관리자만
+    match /quote-leads/{leadId} {
+      allow create: if request.resource.data.keys().hasAll(['customerName', 'email', 'projectType'])
+                    && request.resource.data.customerName is string
+                    && request.resource.data.email is string;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Lead Todos (할 일) - 관리자만 접근 가능
+    match /lead-todos/{todoId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Quote Emails (견적서) - 관리자만 접근 가능
+    match /quote-emails/{emailId} {
+      allow read, write: if isAdmin();
+    }
+
+  }
+}
+

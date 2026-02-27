@@ -1,0 +1,12 @@
+# KhakiSketch robots.txt
+# 카키스케치 - 개발외주, SI, 스타트업 MVP 개발
+
+User-agent: *
+Allow: /
+
+# Admin pages - prevent crawling
+Disallow: /admin
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://khakisketch.co.kr/sitemap.xml
