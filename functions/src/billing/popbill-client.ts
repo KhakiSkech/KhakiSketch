@@ -57,11 +57,31 @@ interface IssueTaxInvoiceResult {
   errorMessage?: string;
 }
 
+export interface IssueCashBillParams {
+  mgtKey: string;          // 관리번호 (고유)
+  tradeDate: string;       // 거래일자 (YYYYMMDD)
+  supplyCost: number;      // 공급가액
+  tax: number;             // 세액
+  totalAmount: number;     // 합계
+  identityNum: string;     // 식별번호 (휴대폰번호 또는 카드번호)
+  itemName: string;        // 품명
+  customerName: string;    // 고객명
+  customerEmail: string;   // 고객 이메일
+  corpNum: string;         // 발행자 사업자번호
+}
+
+interface IssueCashBillResult {
+  success: boolean;
+  cashBillId?: string;
+  errorMessage?: string;
+}
+
 export class PopbillClient {
   private readonly linkId: string;
   private readonly secretKey: string;
   private readonly isTest: boolean;
   private taxinvoiceService: ReturnType<typeof popbill.TaxinvoiceService>;
+  private cashbillService: ReturnType<typeof popbill.CashbillService>;
 
   constructor(linkId: string, secretKey: string, isSandbox: boolean) {
     this.linkId = linkId;
@@ -81,6 +101,7 @@ export class PopbillClient {
     });
 
     this.taxinvoiceService = popbill.TaxinvoiceService();
+    this.cashbillService = popbill.CashbillService();
   }
 
   async registIssue(
@@ -173,6 +194,59 @@ export class PopbillClient {
         },
         (error: { code: number; message: string }) => {
           logger.error("Popbill registIssue error", {
+            code: error.code,
+            message: error.message,
+          });
+          resolve({ success: false, errorMessage: error.message });
+        }
+      );
+    });
+  }
+
+  async issueCashBill(
+    params: IssueCashBillParams
+  ): Promise<IssueCashBillResult> {
+    const cashbill = {
+      mgtKey: params.mgtKey,
+      tradeDate: params.tradeDate,
+      tradeType: "승인거래",
+      tradeUsage: "소득공제용",
+      identityNum: params.identityNum,
+      supplyCost: String(params.supplyCost),
+      tax: String(params.tax),
+      totalAmount: String(params.totalAmount),
+      itemName: params.itemName,
+      customerName: params.customerName,
+      email: params.customerEmail,
+      smssendYN: false,
+    };
+
+    return new Promise((resolve) => {
+      this.cashbillService.registIssue(
+        params.corpNum,
+        cashbill,
+        "",  // memo
+        "",  // userID
+        (response: { code: number; message: string; confirmNum?: string }) => {
+          if (response.code === 1) {
+            logger.info("Popbill cash bill issued", {
+              mgtKey: params.mgtKey,
+              confirmNum: response.confirmNum,
+            });
+            resolve({
+              success: true,
+              cashBillId: response.confirmNum ?? params.mgtKey,
+            });
+          } else {
+            logger.error("Popbill issueCashBill failed", {
+              code: response.code,
+              message: response.message,
+            });
+            resolve({ success: false, errorMessage: response.message });
+          }
+        },
+        (error: { code: number; message: string }) => {
+          logger.error("Popbill issueCashBill error", {
             code: error.code,
             message: error.message,
           });

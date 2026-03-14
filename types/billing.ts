@@ -1,7 +1,10 @@
 // types/billing.ts
 // 고객
+export type ClientType = 'business' | 'individual';
+
 export interface BillingClient {
   id: string;
+  clientType: ClientType;
   companyName: string;
   contactName: string;
   phone: string;

@@ -122,48 +122,81 @@ async function issueTaxInvoiceForInvoice(
 ): Promise<void> {
   const today = getSeoulDateString().replace(/-/g, "");
   const yearMonthLabel = invoice.yearMonth.replace("-", "년 ") + "월";
+  const itemName = `${invoice.projectName} SW 운영관리 서비스 (${yearMonthLabel})`;
 
-  const issueResult = await popbill.registIssue({
-    mgtKey: invoiceRef.id,
-    writeDate: today,
-    issuer: {
+  // 사업자 → 세금계산서, 개인 → 현금영수증
+  const isIndividual = clientData.clientType === "individual";
+
+  let issueResult: { success: boolean; taxInvoiceId?: string; cashBillId?: string; errorMessage?: string };
+
+  if (isIndividual) {
+    // 개인 고객: 현금영수증 발행
+    const cbResult = await popbill.issueCashBill({
+      mgtKey: invoiceRef.id,
+      tradeDate: today,
+      supplyCost: invoice.amount,
+      tax: invoice.taxAmount,
+      totalAmount: invoice.totalAmount,
+      identityNum: clientData.phone.replace(/-/g, ""),
+      itemName,
+      customerName: clientData.contactName,
+      customerEmail: clientData.taxEmail || clientData.email,
       corpNum: settings.supplierRegNo,
-      corpName: settings.supplierName,
-      ceoName: settings.supplierCeo,
-      addr: "",
-      bizType: settings.supplierType,
-      bizClass: settings.supplierCategory,
-      contactName: settings.supplierName,
-      email: "",
-    },
-    receiver: {
-      corpNum: clientData.businessRegNo,
-      corpName: clientData.companyName,
-      ceoName: clientData.contactName,
-      addr: "",
-      bizType: clientData.companyType,
-      bizClass: clientData.companyCategory,
-      contactName: clientData.contactName,
-      email: clientData.taxEmail,
-    },
-    supplyCostTotal: invoice.amount,
-    taxTotal: invoice.taxAmount,
-    totalAmount: invoice.totalAmount,
-    remark1: invoice.projectName,
-    items: [
-      {
-        serialNum: 1,
-        purchaseDT: today,
-        itemName: `${invoice.projectName} SW 운영관리 서비스 (${yearMonthLabel})`,
-        spec: "",
-        qty: 1,
-        unitCost: invoice.amount,
-        supplyCost: invoice.amount,
-        tax: invoice.taxAmount,
-        remark: invoice.projectName,
+    });
+    issueResult = {
+      success: cbResult.success,
+      taxInvoiceId: cbResult.cashBillId,
+      errorMessage: cbResult.errorMessage,
+    };
+  } else {
+    // 사업자 고객: 세금계산서 발행
+    const tiResult = await popbill.registIssue({
+      mgtKey: invoiceRef.id,
+      writeDate: today,
+      issuer: {
+        corpNum: settings.supplierRegNo,
+        corpName: settings.supplierName,
+        ceoName: settings.supplierCeo,
+        addr: "",
+        bizType: settings.supplierType,
+        bizClass: settings.supplierCategory,
+        contactName: settings.supplierName,
+        email: "",
       },
-    ],
-  });
+      receiver: {
+        corpNum: clientData.businessRegNo,
+        corpName: clientData.companyName,
+        ceoName: clientData.contactName,
+        addr: "",
+        bizType: clientData.companyType,
+        bizClass: clientData.companyCategory,
+        contactName: clientData.contactName,
+        email: clientData.taxEmail,
+      },
+      supplyCostTotal: invoice.amount,
+      taxTotal: invoice.taxAmount,
+      totalAmount: invoice.totalAmount,
+      remark1: invoice.projectName,
+      items: [
+        {
+          serialNum: 1,
+          purchaseDT: today,
+          itemName,
+          spec: "",
+          qty: 1,
+          unitCost: invoice.amount,
+          supplyCost: invoice.amount,
+          tax: invoice.taxAmount,
+          remark: invoice.projectName,
+        },
+      ],
+    });
+    issueResult = {
+      success: tiResult.success,
+      taxInvoiceId: tiResult.taxInvoiceId,
+      errorMessage: tiResult.errorMessage,
+    };
+  }
 
   if (issueResult.success) {
     await invoiceRef.update({
@@ -171,12 +204,13 @@ async function issueTaxInvoiceForInvoice(
       updatedAt: FieldValue.serverTimestamp(),
     });
   } else {
-    logger.error("Tax invoice issue failed", {
+    const docType = isIndividual ? "현금영수증" : "세금계산서";
+    logger.error(`${docType} issue failed`, {
       invoiceId: invoiceRef.id,
       error: issueResult.errorMessage,
     });
     // 관리자 SMS 알림
-    const adminMsg = `[KSI] 세금계산서 발행 실패: ${invoice.projectName} ${invoice.yearMonth} - ${issueResult.errorMessage ?? "오류"}. 수동 발행 필요.`;
+    const adminMsg = `[KSI] ${docType} 발행 실패: ${invoice.projectName} ${invoice.yearMonth} - ${issueResult.errorMessage ?? "오류"}. 수동 발행 필요.`;
     await solapi.sendMessage({
       to: settings.solapiSendPhone,
       from: settings.solapiSendPhone,

@@ -2,6 +2,7 @@
 import { Timestamp } from "firebase-admin/firestore";
 
 export interface BillingClientDoc {
+  clientType: "business" | "individual";
   companyName: string;
   contactName: string;
   phone: string;
