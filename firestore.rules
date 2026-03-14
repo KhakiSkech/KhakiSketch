@@ -22,7 +22,7 @@ service cloud.firestore {
     }
 
     // Site settings collection - 공개 읽기, 관리자만 쓰기
-    match /site-settings/{settingId} {
+    match /siteSettings/{settingId} {
       allow read: if true;
       allow write: if isAdmin();
     }
@@ -53,6 +53,28 @@ service cloud.firestore {
 
     // Quote Emails (견적서) - 관리자만 접근 가능
     match /quote-emails/{emailId} {
+      allow read, write: if isAdmin();
+    }
+
+    // === Billing System ===
+    match /billing-clients/{clientId} {
+      allow read, write: if isAdmin();
+
+      match /projects/{projectId} {
+        allow read, write: if isAdmin();
+      }
+
+      match /invoices/{invoiceId} {
+        allow read, write: if isAdmin();
+      }
+    }
+
+    match /billing-notification-logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /billing-settings/{doc} {
       allow read, write: if isAdmin();
     }
 
