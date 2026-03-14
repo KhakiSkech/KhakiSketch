@@ -29,7 +29,7 @@ const listItem = { hidden: { opacity: 0, x: -10 }, visible: { opacity: 1, x: 0, 
 
 function ComparisonMobile() {
   return (
-    <div className="lg:hidden motion-reduce:lg:!block relative py-20 overflow-hidden">
+    <div className="lg:hidden motion-reduce:lg:!block relative py-14 overflow-hidden">
       <DarkMeshBackground />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">

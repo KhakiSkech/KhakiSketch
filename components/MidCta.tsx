@@ -32,6 +32,12 @@ export default function MidCta() {
               </svg>
             </motion.a>
           </div>
+          <div className="flex justify-center lg:justify-start mt-4">
+            <span className="inline-flex items-center gap-2 text-white/50 text-xs">
+              <span className="w-2 h-2 bg-brand-secondary rounded-full animate-pulse" />
+              이번 달 프로젝트 잔여 슬롯 제한 · 월 2~3건만 진행합니다
+            </span>
+          </div>
         </ScrollReveal>
       </div>
     </section>

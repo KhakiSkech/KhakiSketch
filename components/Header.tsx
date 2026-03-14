@@ -125,7 +125,9 @@ export default function Header() {
                 </Link>
               ))}
             </nav>
-            <Link href="/quote" className="bg-brand-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-brand-primary/90 hover:shadow-lg transition-all hover:-translate-y-0.5 active:scale-[0.98]">
+            <Link href="/quote" className="relative bg-brand-secondary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-brand-secondary/90 hover:shadow-lg transition-all hover:-translate-y-0.5 active:scale-[0.98] shadow-md shadow-brand-secondary/25">
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
               무료 상담 신청하기
             </Link>
           </div>

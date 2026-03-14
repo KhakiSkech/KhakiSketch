@@ -51,8 +51,24 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Footer CTA */}
+        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <p className="text-white/60 text-sm">
+            프로젝트가 필요하신가요? 15분 무료 상담으로 시작하세요.
+          </p>
+          <Link
+            href="/quote"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-secondary text-white font-bold text-sm hover:bg-brand-secondary/90 transition-all hover:-translate-y-0.5 shadow-md shadow-brand-secondary/25 shrink-0"
+          >
+            무료 상담 신청하기
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
+        </div>
+
         {/* Bottom Bar */}
-        <div className="mt-20 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-white/40 text-sm">
+        <div className="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-white/40 text-sm">
           <p>© {new Date().getFullYear()} KhakiSketch. All rights reserved.</p>
           <div className="flex items-center gap-8">
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
