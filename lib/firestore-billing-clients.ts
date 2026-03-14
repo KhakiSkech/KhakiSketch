@@ -36,6 +36,7 @@ function convertTimestamp(ts: Timestamp | null | undefined): string | undefined 
 function clientFromFirestore(docId: string, data: DocumentData): BillingClient {
   return {
     id: docId,
+    clientType: data.clientType || 'business',
     companyName: data.companyName || '',
     contactName: data.contactName || '',
     phone: data.phone || '',

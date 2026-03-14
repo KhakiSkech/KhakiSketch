@@ -19,7 +19,7 @@ export default function Contact() {
         }}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-14 lg:py-20">
         <ScrollReveal>
           <div className="flex flex-col items-center text-center gap-6 max-w-2xl mx-auto">
             {/* Heading */}

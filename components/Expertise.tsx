@@ -145,7 +145,7 @@ const cards = [
 
 export default function Expertise({ title = "무엇을 만들 수 있나요?" }: { title?: string }) {
   return (
-    <section id="services" className="w-full bg-brand-bg py-20 lg:py-28">
+    <section id="services" className="w-full bg-brand-bg py-14 lg:py-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Header */}
         <ScrollReveal>

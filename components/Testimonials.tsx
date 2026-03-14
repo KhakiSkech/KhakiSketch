@@ -158,7 +158,7 @@ export default function Testimonials() {
   // Loading state
   if (isLoading) {
     return (
-      <section className="w-full bg-white py-20 lg:py-28" id="testimonials" aria-busy="true">
+      <section className="w-full bg-white py-14 lg:py-20" id="testimonials" aria-busy="true">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="mb-10">{header}</div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">

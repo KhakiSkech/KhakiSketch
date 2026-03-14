@@ -127,7 +127,7 @@ export default function Stats() {
 
   if (isLoading) {
     return (
-      <section className="w-full bg-brand-bg py-20 lg:py-28 relative overflow-hidden" aria-busy="true">
+      <section className="w-full bg-brand-bg py-14 lg:py-20 relative overflow-hidden" aria-busy="true">
         <div className="w-full max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {[1, 2, 3, 4].map((i) => (
@@ -140,7 +140,7 @@ export default function Stats() {
   }
 
   return (
-    <section className="w-full bg-brand-bg py-20 lg:py-28 relative overflow-hidden">
+    <section className="w-full bg-brand-bg py-14 lg:py-20 relative overflow-hidden">
       {/* Radial glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full bg-brand-secondary opacity-[0.04] blur-[200px] pointer-events-none" />
       {/* Subtle grid background */}

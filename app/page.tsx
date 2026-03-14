@@ -7,11 +7,12 @@ import Comparison from "@/components/Comparison";
 import Stats from "@/components/Stats";
 import Testimonials from "@/components/Testimonials";
 import TechStackMarqueeClient from "@/components/TechStackMarqueeClient";
+import MidCta from "@/components/MidCta";
 
 // Lazy load below-fold components for better initial load performance
 const FAQ = dynamic(() => import("@/components/FAQ"), {
   loading: () => (
-    <section className="w-full py-16 lg:py-24">
+    <section className="w-full py-14 lg:py-20">
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto"></div>
@@ -24,7 +25,7 @@ const FAQ = dynamic(() => import("@/components/FAQ"), {
 
 const Contact = dynamic(() => import("@/components/Contact"), {
   loading: () => (
-    <section className="w-full py-16 lg:py-24">
+    <section className="w-full py-14 lg:py-20">
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto"></div>
@@ -45,16 +46,17 @@ export default function Home() {
       {/* 2. Problem → Solution */}
       <Comparison />
 
-      {/* 3. 신뢰 구축 */}
+      {/* 3. 신뢰 구축 (숫자 → 후기를 서비스 설명보다 먼저) */}
       <Stats />
+      <Testimonials />
 
       {/* 4. 서비스 & 프로세스 */}
       <Expertise />
+      <MidCta />
       <Process />
 
       {/* 5. 증거 */}
       <Portfolio />
-      <Testimonials />
 
       {/* 6. 반론 해소 & 전환 */}
       <FAQ />

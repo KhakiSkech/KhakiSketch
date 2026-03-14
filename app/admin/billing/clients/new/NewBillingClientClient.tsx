@@ -59,6 +59,7 @@ export default function NewBillingClientClient(): React.ReactElement {
 
     const result = await createBillingClient({
       ...form,
+      clientType: 'business',
       bankCode: '',
       bankAccountNo: '',
       paypleBillingKey: '',

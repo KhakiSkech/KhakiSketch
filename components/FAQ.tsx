@@ -60,7 +60,7 @@ export default function FAQ() {
   };
 
   return (
-    <section className="w-full bg-white py-20 lg:py-28" id="faq">
+    <section className="w-full bg-white py-14 lg:py-20" id="faq">
       <div className="w-full max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
         <ScrollReveal>
