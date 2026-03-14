@@ -37,6 +37,7 @@ export async function optimizeImage(
     }
 
     img.onload = () => {
+      URL.revokeObjectURL(img.src);
       // 리사이징 계산
       let { width, height } = img;
       const aspectRatio = width / height;
@@ -86,6 +87,7 @@ export async function optimizeImage(
     };
 
     img.onerror = () => {
+      URL.revokeObjectURL(img.src);
       reject(new Error('Failed to load image'));
     };
 
@@ -101,11 +103,4 @@ export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-/**
- * 이미지 파일인지 확인
- */
-export function isImageFile(file: File): boolean {
-  return file.type.startsWith('image/');
 }

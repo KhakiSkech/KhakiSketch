@@ -6,6 +6,7 @@ import SkipLink from "@/components/SkipLink";
 import ConditionalLayout from "@/components/ConditionalLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import NoiseTexture from "@/components/ui/NoiseTexture";
+import CursorGlow from "@/components/ui/CursorGlow";
 
 // Google Analytics Measurement ID - 실제 ID로 교체 필요
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
@@ -84,8 +85,8 @@ export default function RootLayout({
         {/* Preload critical font files directly for faster loading */}
         <link rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2/Pretendard-Regular.woff2" />
         <link rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2/Pretendard-Bold.woff2" />
-        <link rel="preload" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-Medium.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-SemiBold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2/Pretendard-Medium.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2/Pretendard-SemiBold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         {/* Inline critical font-face with font-display: swap for FOUT prevention */}
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -137,6 +138,8 @@ export default function RootLayout({
         <SkipLink />
         {/* Global Noise Texture for Premium Finish */}
         <NoiseTexture />
+        {/* Cursor Glow Effect (desktop only) */}
+        <CursorGlow />
         <ErrorBoundary>
           <ConditionalLayout>{children}</ConditionalLayout>
         </ErrorBoundary>

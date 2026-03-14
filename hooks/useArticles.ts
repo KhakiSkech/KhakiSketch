@@ -2,8 +2,8 @@
 
 import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
-import { getAllArticles, getFeaturedArticles, getArticleBySlug } from '@/lib/firestore-articles';
-import { articles as staticArticles, getArticleBySlug as getStaticArticleBySlug, getFeaturedArticles as getStaticFeaturedArticles } from '@/data/articles';
+import { getAllArticles, getArticleBySlug } from '@/lib/firestore-articles';
+import { articles as staticArticles, getArticleBySlug as getStaticArticleBySlug } from '@/data/articles';
 import type { FirestoreArticle as Article } from '@/types/admin';
 
 interface UseArticlesReturn {
@@ -15,12 +15,6 @@ interface UseArticlesReturn {
 
 interface UseArticleReturn {
   article: Article | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
-interface UseFeaturedArticlesReturn {
-  articles: Article[];
   isLoading: boolean;
   error: string | null;
 }
@@ -60,38 +54,6 @@ export function useArticles(): UseArticlesReturn {
   }, []);
 
   return { articles, isLoading, error, dataSource };
-}
-
-/**
- * Featured 글만 가져오는 훅
- */
-export function useFeaturedArticles(): UseFeaturedArticlesReturn {
-  const [articles, setArticles] = useState<Article[]>(getStaticFeaturedArticles());
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadArticles = async (): Promise<void> => {
-      try {
-        const firestoreArticles = await getFeaturedArticles();
-        if (firestoreArticles.length > 0) {
-          setArticles(firestoreArticles);
-        } else {
-          setArticles(getStaticFeaturedArticles());
-        }
-      } catch (err) {
-        logger.warn('Featured 글 로드 실패, 정적 데이터 사용:', err);
-        setArticles(getStaticFeaturedArticles());
-        setError('Firestore 연결 실패');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadArticles();
-  }, []);
-
-  return { articles, isLoading, error };
 }
 
 /**

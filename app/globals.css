@@ -1,12 +1,16 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Hide scrollbar for horizontal carousel */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Light-only design: no dark mode variables */
 
 @theme {
   --color-brand-primary: #263122;
@@ -47,11 +51,12 @@ body {
   font-synthesis: none;
 }
 
-
-/* Smooth font transition when webfont loads (FOUT mitigation) */
+/* Unified html block: font, scroll-behavior, scrollbar */
 html {
-  /* Match system fonts metrics to Pretendard to minimize layout shift */
   font-family: var(--font-sans);
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #749965 #FAF9F6;
 }
 
 /* Size-adjusted system font fallbacks to reduce layout shift */
@@ -59,75 +64,6 @@ html {
   html {
     font-size-adjust: 0.5;
   }
-}
-
-/* 3D Tilt Utilities */
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-.transform-style-3d {
-  transform-style: preserve-3d;
-}
-
-.translate-z-10 {
-  transform: translateZ(30px);
-}
-
-/* ===== Animation Delays - Unified for all interactions ===== */
-.delay-100 {
-  animation-delay: 0.1s;
-}
-
-.delay-200 {
-  animation-delay: 0.2s;
-}
-
-.delay-300 {
-  animation-delay: 0.3s;
-}
-
-.delay-400 {
-  animation-delay: 0.4s;
-}
-
-.delay-500 {
-  animation-delay: 0.5s;
-}
-
-.delay-600 {
-  animation-delay: 0.6s;
-}
-
-.delay-700 {
-  animation-delay: 0.7s;
-}
-
-.delay-800 {
-  animation-delay: 0.8s;
-}
-
-.delay-1000 {
-  animation-delay: 1s;
-}
-
-/* Pulse Slow Animation (for Hero fallback or non-motion usage) */
-@keyframes pulse-slow {
-
-  0%,
-  100% {
-    opacity: 0.1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.2;
-    transform: scale(1.05);
-  }
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 8s ease-in-out infinite;
 }
 
 /* Image loading shimmer effect */
@@ -158,14 +94,6 @@ html {
 }
 
 /* ===== Smooth Hover Transitions ===== */
-.hover-lift {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.hover-lift:hover {
-  transform: translateY(-4px);
-}
 
 /* Global smooth transition for interactive elements */
 a,
@@ -173,119 +101,7 @@ button {
   transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
-}
-
 /* ===== ServiceDetail Hover Interactions ===== */
-
-/* Problems 카드 호버 */
-.problem-card {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.3s ease;
-}
-
-.problem-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);
-  border-color: rgb(254 202 202);
-  /* red-200 */
-}
-
-.problem-card:hover .problem-emoji {
-  animation: wiggle 0.5s ease-in-out;
-}
-
-/* Solutions 아이템 호버 */
-.solution-item {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.solution-item:hover .solution-number {
-  transform: scale(1.15);
-  box-shadow: 0 4px 12px rgba(38, 49, 34, 0.2);
-}
-
-.solution-item:hover .solution-text {
-  color: #263122;
-}
-
-.solution-number {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Target 아이템 호버 */
-.target-item {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.target-item:hover {
-  background: rgba(116, 153, 101, 0.05);
-  border-radius: 8px;
-  padding-left: 8px;
-  margin-left: -8px;
-}
-
-.target-item:hover .target-check {
-  animation: bounceIn 0.4s ease-out;
-}
-
-/* FAQ 호버/토글 */
-.faq-item {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.faq-item:hover {
-  border-color: rgba(116, 153, 101, 0.3);
-}
-
-.faq-item summary {
-  transition: background-color 0.2s ease;
-}
-
-.faq-item summary:hover {
-  background-color: #f9fafb;
-}
-
-.faq-item[open] .faq-content {
-  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.faq-arrow {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.faq-item[open] .faq-arrow {
-  transform: rotate(180deg);
-}
-
-/* CTA 버튼 */
-.cta-button {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.cta-button::after {
-  content: '→';
-  position: absolute;
-  right: 24px;
-  opacity: 0;
-  transform: translateX(-10px);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.cta-button:hover {
-  padding-right: 56px;
-}
-
-.cta-button:hover::after {
-  opacity: 1;
-  transform: translateX(0);
-}
 
 /* Back 링크 호버 */
 .back-link {
@@ -324,58 +140,6 @@ html {
 .example-image {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-/* ===== New Animation Keyframes ===== */
-
-@keyframes wiggle {
-
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-
-  25% {
-    transform: rotate(-5deg);
-  }
-
-  75% {
-    transform: rotate(5deg);
-  }
-}
-
-@keyframes bounceIn {
-  0% {
-    transform: scale(0.3);
-    opacity: 0;
-  }
-
-  50% {
-    transform: scale(1.05);
-  }
-
-  70% {
-    transform: scale(0.9);
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-
 
 
 /* ===== Accessibility Improvements ===== */
@@ -421,79 +185,6 @@ html {
 
 /* ===== Homepage Section Animations ===== */
 
-/* Why KhakiSketch - Comparison Cards */
-.comparison-card {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.comparison-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.6s ease;
-}
-
-.comparison-card:hover::before {
-  left: 100%;
-}
-
-.comparison-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-.comparison-card.good {
-  border-color: #86efac;
-}
-
-.comparison-card.good:hover {
-  box-shadow: 0 20px 40px rgba(34, 197, 94, 0.2);
-  background: rgba(34, 197, 94, 0.02);
-}
-
-.comparison-card.bad {
-  border-color: #fca5a5;
-}
-
-.comparison-card.bad:hover {
-  box-shadow: 0 20px 40px rgba(239, 68, 68, 0.2);
-  background: rgba(239, 68, 68, 0.02);
-}
-
-/* Work Process - Step Animation */
-
-.process-step {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.process-step:hover {
-  transform: scale(1.08);
-}
-
-.process-step-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #263122, #749965);
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.process-step:hover .process-step-number {
-  box-shadow: 0 8px 20px rgba(38, 49, 34, 0.3);
-}
-
 
 /* ===== Premium Global Enhancements ===== */
 
@@ -528,12 +219,6 @@ html {
   background: linear-gradient(180deg, #87AC75, #445d3a);
 }
 
-/* Firefox scrollbar */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: #749965 #FAF9F6;
-}
-
 /* Selection highlight */
 ::selection {
   background: rgba(116, 153, 101, 0.3);
@@ -550,76 +235,3 @@ img {
   opacity: 1;
   transition: opacity 0.3s ease;
 }
-
-img[loading="lazy"] {
-  opacity: 0;
-}
-
-img[loading="lazy"].loaded,
-img[loading="lazy"]:not([src=""]) {
-  opacity: 1;
-}
-
-/* Link underline animation */
-.fancy-underline {
-  position: relative;
-  text-decoration: none;
-}
-
-.fancy-underline::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #749965, #87AC75);
-  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.fancy-underline:hover::after {
-  width: 100%;
-}
-
-/* Glassmorphism utility */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-/* Gradient text utility */
-.gradient-text {
-  background: linear-gradient(135deg, #263122, #749965);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Subtle glow effect */
-.glow {
-  box-shadow: 0 0 20px rgba(116, 153, 101, 0.3);
-}
-
-.glow-hover:hover {
-  box-shadow: 0 0 30px rgba(116, 153, 101, 0.4);
-}
-
-/* Floating animation */
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-

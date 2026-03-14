@@ -23,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/services/startup-mvp',
     '/services/corporate-website',
     '/services/business-automation',
+    '/brochure',
     '/privacy',
     '/terms',
   ];

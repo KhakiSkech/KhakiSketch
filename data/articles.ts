@@ -250,7 +250,3 @@ export function getArticleBySlug(slug: string): FirestoreArticle | undefined {
 export function getFeaturedArticles(): FirestoreArticle[] {
   return articles.filter((article) => article.featured);
 }
-
-export function getArticlesByCategory(category: FirestoreArticle['category']): FirestoreArticle[] {
-  return articles.filter((article) => article.category === category);
-}

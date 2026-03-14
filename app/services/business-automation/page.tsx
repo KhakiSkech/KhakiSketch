@@ -6,18 +6,18 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Business Web & Automation | 업무 자동화',
-  description: '홈페이지·예약/문의·낶부 엑셀/장부를 하나의 업무용 웹툴로 통합. 수작업을 자동화하여 업무 효율을 높여드립니다.',
+  description: '홈페이지·예약/문의·내부 엑셀/장부를 하나의 업무용 웹툴로 통합. 수작업을 자동화하여 업무 효율을 높여드립니다.',
   keywords: ['업무 자동화', '웹툴 개발', '예약 시스템', '문의 관리', '엑셀 자동화', '업무 효율화'],
   openGraph: {
     title: 'Business Web & Automation | KhakiSketch',
-    description: '홈페이지·예약/문의·낶부 엑셀/장부를 하나의 업무용 웹툴로 통합',
+    description: '홈페이지·예약/문의·내부 엑셀/장부를 하나의 업무용 웹툴로 통합',
     type: 'website',
     images: [{ url: '/opengraph-image.webp', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Business Web & Automation | KhakiSketch',
-    description: '홈페이지·예약/문의·낶부 엑셀/장부를 하나의 업무용 웹툴로 통합',
+    description: '홈페이지·예약/문의·내부 엑셀/장부를 하나의 업무용 웹툴로 통합',
     images: ['/opengraph-image.webp'],
   },
   alternates: {

@@ -17,8 +17,8 @@ export const MOCK_ARTICLES: FirestoreArticle[] = [
       <h3>핵심 기능 정의하기</h3>
       <p>모든 기능을 다 넣으려 하지 마세요. 사용자가 겪는 가장 큰 고통을 해결해주는 하나의 기능에 집중해야 합니다.</p>
     `,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: '2024-06-01T00:00:00.000Z',
+        updatedAt: '2024-06-01T00:00:00.000Z',
     },
     {
         slug: "why-python-fastapi",
@@ -31,8 +31,8 @@ export const MOCK_ARTICLES: FirestoreArticle[] = [
         featured: true,
         coverImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1920&auto=format&fit=crop",
         content: "<p>Python은 느리다는 편견이 있습니다. 하지만...</p>",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: '2024-06-01T00:00:00.000Z',
+        updatedAt: '2024-06-01T00:00:00.000Z',
     },
     {
         slug: "automation-case-study",
@@ -45,8 +45,8 @@ export const MOCK_ARTICLES: FirestoreArticle[] = [
         featured: false,
         coverImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1920&auto=format&fit=crop",
         content: "<p>많은 기업이 엑셀 업무에...</p>",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: '2024-06-01T00:00:00.000Z',
+        updatedAt: '2024-06-01T00:00:00.000Z',
     },
     {
         slug: "khaki-sketch-launch",
@@ -59,7 +59,7 @@ export const MOCK_ARTICLES: FirestoreArticle[] = [
         featured: false,
         coverImage: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1920&auto=format&fit=crop",
         content: "<p>안녕하세요, Khaki Sketch입니다...</p>",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: '2024-06-01T00:00:00.000Z',
+        updatedAt: '2024-06-01T00:00:00.000Z',
     }
 ];

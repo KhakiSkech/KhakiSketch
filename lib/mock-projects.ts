@@ -48,8 +48,8 @@ export const MOCK_PROJECTS: FirestoreProject[] = [
         },
         featured: true,
         status: "PUBLISHED",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: '2024-06-01T00:00:00.000Z',
+        updatedAt: '2024-06-01T00:00:00.000Z',
     },
     {
         id: "edulink-lms",
@@ -98,8 +98,8 @@ export const MOCK_PROJECTS: FirestoreProject[] = [
         },
         featured: true,
         status: "PUBLISHED",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: '2024-06-01T00:00:00.000Z',
+        updatedAt: '2024-06-01T00:00:00.000Z',
     },
     {
         id: "auto-matcher",
@@ -148,7 +148,7 @@ export const MOCK_PROJECTS: FirestoreProject[] = [
         },
         featured: true,
         status: "SAMPLE",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: '2024-06-01T00:00:00.000Z',
+        updatedAt: '2024-06-01T00:00:00.000Z',
     }
 ];

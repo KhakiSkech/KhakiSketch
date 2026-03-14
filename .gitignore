@@ -45,6 +45,7 @@ next-env.d.ts
 firebase-debug.log*
 functions/lib/
 functions/node_modules/
+functions/.next/
 
 # IDE
 .idea/
@@ -55,8 +56,27 @@ functions/node_modules/
 .playwright-mcp/
 .agent/
 
+# screenshots / captures (dev artifacts)
+*.png
+*.jpeg
+*.html
+!public/**/*.png
+!public/**/*.jpeg
+!public/**/*.jpg
+!app/**/*.html
+/mockups/
+/mockups-refined/
+
+# dev docs / reports
+/docs/
+!/docs/specs/
+
 # sensitive
 ENV_BACKUP.md
+
+# one-time scripts with hardcoded config
+scripts/run-migration.mjs
+functions/scripts/bootstrap-cli-auth.js
 
 # Windows reserved filenames
 nul

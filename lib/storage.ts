@@ -4,7 +4,6 @@ import {
   uploadBytes,
   getDownloadURL,
   listAll,
-  deleteObject,
   UploadMetadata,
 } from 'firebase/storage';
 import { getFirebaseStorage } from './firebase';
@@ -93,13 +92,4 @@ export async function listAllImages(): Promise<StorageImage[]> {
     logger.error('전체 이미지 목록 조회 실패:', error);
     return [];
   }
-}
-
-/**
- * 이미지 URL 생성 (기존 경로에서)
- */
-export async function getImageUrl(fullPath: string): Promise<string> {
-  const storage = getFirebaseStorage();
-  const imageRef = ref(storage, fullPath);
-  return getDownloadURL(imageRef);
 }

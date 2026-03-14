@@ -19,6 +19,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { getFirebaseFirestore } from './firebase';
+import { withTimeout } from './utils';
 import { QuoteLead, LeadStatus, LeadPriority, LeadSource, LeadNote, LeadActivity, LeadTodo, TodoStatus, QuoteEmail, QuoteEmailStatus, CustomerStats } from '@/types/admin';
 
 const LEADS_COLLECTION = 'quote-leads';
@@ -125,7 +126,7 @@ export async function getAllLeads(
     }
 
     const q = query(collection(db, LEADS_COLLECTION), ...constraints);
-    const snapshot = await getDocs(q);
+    const snapshot = await withTimeout(getDocs(q), 5000);
     
     const leads = snapshot.docs.map((doc) => fromFirestoreData(doc.id, doc.data()));
     return { success: true, data: leads };
@@ -142,7 +143,7 @@ export async function getLeadById(id: string): Promise<QueryResult<QuoteLead>> {
   try {
     const db = getFirebaseFirestore();
     const docRef = doc(db, LEADS_COLLECTION, id);
-    const docSnap = await getDoc(docRef);
+    const docSnap = await withTimeout(getDoc(docRef), 5000);
 
     if (!docSnap.exists()) {
       return { success: false, error: '리드를 찾을 수 없습니다.' };
@@ -199,13 +200,11 @@ export async function updateLead(
     const db = getFirebaseFirestore();
     const docRef = doc(db, LEADS_COLLECTION, id);
     
+    const { id: _id, ...rest } = updates;
     const updateData: DocumentData = {
-      ...updates,
+      ...rest,
       updatedAt: Timestamp.now(),
     };
-
-    // id는 업데이트에서 제외
-    delete updateData.id;
 
     // Timestamp 변환
     if (updates.createdAt) {
@@ -372,7 +371,7 @@ export async function getLeadStats(): Promise<QueryResult<{
 }>> {
   try {
     const db = getFirebaseFirestore();
-    const snapshot = await getDocs(collection(db, LEADS_COLLECTION));
+    const snapshot = await withTimeout(getDocs(collection(db, LEADS_COLLECTION)), 5000);
     
     const leads = snapshot.docs.map((doc) => fromFirestoreData(doc.id, doc.data()));
     
@@ -429,8 +428,8 @@ export async function getLeadTodos(leadId: string): Promise<QueryResult<LeadTodo
       where('leadId', '==', leadId),
       orderBy('dueDate', 'asc')
     );
-    
-    const snapshot = await getDocs(q);
+
+    const snapshot = await withTimeout(getDocs(q), 5000);
     const todos = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -461,8 +460,8 @@ export async function getTodayTodos(): Promise<QueryResult<LeadTodo[]>> {
       where('status', 'in', ['PENDING', 'IN_PROGRESS']),
       orderBy('dueDate', 'asc')
     );
-    
-    const snapshot = await getDocs(q);
+
+    const snapshot = await withTimeout(getDocs(q), 5000);
     const todos = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -573,8 +572,8 @@ export async function getLeadQuoteEmails(leadId: string): Promise<QueryResult<Qu
       where('leadId', '==', leadId),
       orderBy('createdAt', 'desc')
     );
-    
-    const snapshot = await getDocs(q);
+
+    const snapshot = await withTimeout(getDocs(q), 5000);
     const emails = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -662,8 +661,8 @@ export async function getCustomerStats(email: string): Promise<QueryResult<Custo
       collection(db, LEADS_COLLECTION),
       where('email', '==', email)
     );
-    
-    const snapshot = await getDocs(q);
+
+    const snapshot = await withTimeout(getDocs(q), 5000);
     const leads = snapshot.docs.map((doc) => fromFirestoreData(doc.id, doc.data()));
 
     if (leads.length === 0) {

@@ -269,7 +269,3 @@ export function getProjectById(id: string): FirestoreProject | undefined {
 export function getFeaturedProjects(): FirestoreProject[] {
   return projects.filter((p) => p.featured);
 }
-
-export function getProjectsByCategory(category: FirestoreProject['category']): FirestoreProject[] {
-  return projects.filter((p) => p.category === category);
-}

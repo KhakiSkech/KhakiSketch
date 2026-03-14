@@ -42,7 +42,7 @@ export async function getAllProjects(): Promise<FirestoreProject[]> {
     })) as FirestoreProject[];
   } catch (error) {
     logger.warn('프로젝트 목록 조회 실패:', error);
-    return [];
+    return MOCK_PROJECTS;
   }
 }
 

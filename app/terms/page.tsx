@@ -5,6 +5,17 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: '이용약관',
   description: '카키스케치의 서비스 이용약관입니다.',
+  openGraph: {
+    title: '이용약관 | KhakiSketch',
+    description: '카키스케치의 서비스 이용약관입니다.',
+    images: [{ url: '/opengraph-image.webp', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '이용약관 | KhakiSketch',
+    description: '카키스케치의 서비스 이용약관입니다.',
+    images: ['/opengraph-image.webp'],
+  },
   alternates: {
     canonical: 'https://khakisketch.co.kr/terms',
   },
