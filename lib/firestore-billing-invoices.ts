@@ -3,6 +3,8 @@ import { logger } from './logger';
 import {
   collection,
   collectionGroup,
+  doc,
+  getDoc,
   getDocs,
   query,
   orderBy,
@@ -34,10 +36,11 @@ function convertTimestamp(ts: Timestamp | null | undefined): string | null {
 
 // ===== BillingInvoice 변환 =====
 
-function invoiceFromFirestore(docId: string, clientId: string, data: DocumentData): BillingInvoice {
+function invoiceFromFirestore(docId: string, clientId: string, data: DocumentData, clientName?: string): BillingInvoice {
   return {
     id: docId,
     clientId,
+    clientName: clientName ?? data.clientName ?? clientId,
     projectId: data.projectId || '',
     projectName: data.projectName || '',
     yearMonth: data.yearMonth || '',
@@ -69,6 +72,28 @@ function extractClientId(refPath: string): string {
   return idx !== -1 ? (parts[idx + 1] ?? '') : '';
 }
 
+// ===== clientName 보강 헬퍼 =====
+
+async function enrichWithClientNames(
+  db: ReturnType<typeof getFirebaseFirestore>,
+  invoices: BillingInvoice[]
+): Promise<BillingInvoice[]> {
+  const uniqueClientIds = [...new Set(invoices.map((inv) => inv.clientId))];
+  const clientNameMap: Record<string, string> = {};
+  for (const cid of uniqueClientIds) {
+    const clientDoc = await getDoc(doc(db, CLIENTS_COLLECTION, cid));
+    if (clientDoc.exists()) {
+      clientNameMap[cid] = (clientDoc.data().companyName as string) || cid;
+    } else {
+      clientNameMap[cid] = cid;
+    }
+  }
+  return invoices.map((inv) => ({
+    ...inv,
+    clientName: clientNameMap[inv.clientId] ?? inv.clientId,
+  }));
+}
+
 // ===== 청구서 서비스 =====
 
 /**
@@ -97,7 +122,8 @@ export async function getAllInvoices(
       return invoiceFromFirestore(d.id, clientId, d.data());
     });
 
-    return { success: true, data: invoices };
+    const enriched = await enrichWithClientNames(db, invoices);
+    return { success: true, data: enriched };
   } catch (error) {
     logger.error('청구서 전체 조회 실패:', error);
     return { success: false, error: '청구서 목록을 불러오는데 실패했습니다.' };
@@ -118,8 +144,13 @@ export async function getClientInvoices(
     );
     const snapshot = await withTimeout(getDocs(q), 5000);
 
+    const clientDoc = await getDoc(doc(db, CLIENTS_COLLECTION, clientId));
+    const clientName = clientDoc.exists()
+      ? ((clientDoc.data().companyName as string) || clientId)
+      : clientId;
+
     const invoices = snapshot.docs.map((d) =>
-      invoiceFromFirestore(d.id, clientId, d.data())
+      invoiceFromFirestore(d.id, clientId, d.data(), clientName)
     );
 
     return { success: true, data: invoices };
@@ -147,7 +178,8 @@ export async function getOverdueInvoices(): Promise<BillingQueryResult<BillingIn
       return invoiceFromFirestore(d.id, clientId, d.data());
     });
 
-    return { success: true, data: invoices };
+    const enriched = await enrichWithClientNames(db, invoices);
+    return { success: true, data: enriched };
   } catch (error) {
     logger.error('연체 청구서 조회 실패:', error);
     return { success: false, error: '연체 청구서를 불러오는데 실패했습니다.' };

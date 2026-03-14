@@ -60,8 +60,8 @@ export default function FAQ() {
   };
 
   return (
-    <section className="w-full bg-brand-bg py-20 lg:py-28" id="faq">
-      <div className="w-full max-w-6xl mx-auto px-6 lg:px-8">
+    <section className="w-full bg-white py-20 lg:py-28" id="faq">
+      <div className="w-full max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
         <ScrollReveal>
           <div className="flex flex-col gap-4 mb-12 lg:mb-16 text-center">
@@ -87,6 +87,7 @@ export default function FAQ() {
               >
                 {/* Question */}
                 <button
+                  id={`faq-question-${faq.id}`}
                   onClick={() => toggleFAQ(faq.id)}
                   className="w-full flex items-center justify-between gap-4 p-5 lg:p-6 text-left transition-colors hover:bg-gray-50"
                   aria-expanded={openId === faq.id}
@@ -125,14 +126,15 @@ export default function FAQ() {
                   {openId === faq.id && (
                     <motion.div
                       id={`faq-answer-${faq.id}`}
+                      role="region"
+                      aria-labelledby={`faq-question-${faq.id}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ height: { duration: 0.3, ease: ANIMATION.easing }, opacity: { duration: 0.3 } }}
-                      aria-hidden={openId !== faq.id}
                     >
                       <div className="px-5 lg:px-6 pb-5 lg:pb-6 pt-0">
-                        <p className="text-brand-text leading-relaxed break-keep pl-0 lg:pl-16">
+                        <p className="text-brand-text leading-relaxed break-keep pl-0 lg:pl-[3.25rem]">
                           {faq.answer}
                         </p>
                       </div>
@@ -144,8 +146,6 @@ export default function FAQ() {
           ))}
         </div>
       </div>
-
-
     </section>
   );
 }

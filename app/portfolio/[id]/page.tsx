@@ -5,16 +5,17 @@ import { Metadata } from 'next';
 import ProjectDetailContent from './ProjectDetailContent';
 
 export async function generateStaticParams() {
+    // Always include static project IDs as baseline
+    const ids = new Set(staticProjects.map((p) => p.id));
+
     try {
         const projects = await getAllProjects();
-        if (projects.length > 0) {
-            return projects.map((project) => ({ id: project.id }));
-        }
+        projects.forEach((p) => ids.add(p.id));
     } catch (error) {
-        logger.error('Failed to generate portfolio static params:', error);
+        logger.error('Failed to fetch Firestore projects for static params:', error);
     }
-    // Fallback to static projects for build time
-    return staticProjects.map((project) => ({ id: project.id }));
+
+    return Array.from(ids).map((id) => ({ id }));
 }
 
 export async function generateMetadata({

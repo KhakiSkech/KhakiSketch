@@ -39,5 +39,21 @@ export const ANIMATION = {
             initial: { opacity: 0, scale: 0.95 },
             animate: { opacity: 1, scale: 1 },
         }
-    }
+    },
+
+    // Scroll-driven animation defaults
+    scroll: {
+        textReveal: {
+            mutedOpacity: 0.15,
+            activeOpacity: 1,
+        },
+        spring: {
+            stiffness: 100,
+            damping: 30,
+            restDelta: 0.001,
+        },
+        sticky: {
+            defaultHeight: 2,
+        },
+    },
 } as const;

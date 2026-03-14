@@ -179,7 +179,7 @@ export default function BillingDashboardClient(): React.ReactElement {
                         href={`/admin/billing/clients/${invoice.clientId}`}
                         className="font-medium text-brand-secondary hover:underline"
                       >
-                        {invoice.clientId}
+                        {invoice.clientName}
                       </Link>
                     </td>
                     <td className="px-6 py-4 text-brand-text">{invoice.projectName}</td>

@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import Hero from "@/components/Hero";
 import Expertise from "@/components/Expertise";
@@ -39,20 +38,27 @@ const Contact = dynamic(() => import("@/components/Contact"), {
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
+      {/* 1. Hook — 문제 제기 */}
       <Hero />
       <TechStackMarqueeClient />
-      <Expertise />
+
+      {/* 2. Problem → Solution */}
       <Comparison />
+
+      {/* 3. 신뢰 구축 */}
       <Stats />
+
+      {/* 4. 서비스 & 프로세스 */}
+      <Expertise />
       <Process />
+
+      {/* 5. 증거 */}
       <Portfolio />
       <Testimonials />
-      <Suspense fallback={<section className="w-full py-16 lg:py-24"><div className="max-w-4xl mx-auto px-6 lg:px-8"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-1/3 mx-auto" /><div className="h-32 bg-gray-100 rounded" /></div></div></section>}>
-        <Contact />
-      </Suspense>
-      <Suspense fallback={<section className="w-full py-16 lg:py-24"><div className="max-w-4xl mx-auto px-6 lg:px-8"><div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-1/3 mx-auto" /><div className="h-4 bg-gray-100 rounded w-2/3 mx-auto" /></div></div></section>}>
-        <FAQ />
-      </Suspense>
+
+      {/* 6. 반론 해소 & 전환 */}
+      <FAQ />
+      <Contact />
     </main>
   );
 }

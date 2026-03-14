@@ -60,10 +60,10 @@ export class SolapiClient {
       messagePayload.kakaoOptions = params.kakaoOptions;
     }
 
-    const body = { message: messagePayload };
+    const body = { messages: [messagePayload] };
 
     try {
-      const response = await fetch(`${this.baseUrl}/messages/v4/send`, {
+      const response = await fetch(`${this.baseUrl}/messages/v4/send-many`, {
         method: "POST",
         headers: {
           Authorization: authorization,

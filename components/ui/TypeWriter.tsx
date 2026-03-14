@@ -12,10 +12,11 @@ interface TypeWriterProps {
 export default function TypeWriter({ text, delay = 0, speed = 100, start = true }: TypeWriterProps) {
   const [displayText, setDisplayText] = useState('');
   const [started, setStarted] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
     if (!start) return;
-    
+
     const startTimeout = setTimeout(() => {
       setStarted(true);
     }, delay);
@@ -33,6 +34,7 @@ export default function TypeWriter({ text, delay = 0, speed = 100, start = true 
         currentIndex++;
       } else {
         clearInterval(interval);
+        setIsComplete(true);
       }
     }, speed);
 
@@ -42,7 +44,7 @@ export default function TypeWriter({ text, delay = 0, speed = 100, start = true 
   return (
     <span className="inline-block">
       {displayText}
-      <span className="animate-pulse">|</span>
+      {!isComplete && <span className="animate-pulse">|</span>}
     </span>
   );
 }

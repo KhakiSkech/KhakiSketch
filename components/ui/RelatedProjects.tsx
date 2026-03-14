@@ -35,7 +35,7 @@ export default function RelatedProjects({ projects }: RelatedProjectsProps) {
 
   return (
     <section className="w-full py-16 lg:py-24 px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <ScrollReveal>
           <h2 className="text-3xl lg:text-4xl font-bold text-brand-primary mb-12">관련 프로젝트</h2>
         </ScrollReveal>

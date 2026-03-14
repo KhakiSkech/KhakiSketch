@@ -5,20 +5,17 @@ import { Metadata } from 'next';
 import BlogDetailClient from './BlogDetailClient';
 
 export async function generateStaticParams() {
+  // Always include static article slugs as baseline
+  const slugs = new Set(staticArticles.map((a) => a.slug));
+
   try {
     const articles = await getAllArticles();
-    if (articles.length > 0) {
-      return articles.map((article) => ({
-        slug: article.slug,
-      }));
-    }
+    articles.forEach((a) => slugs.add(a.slug));
   } catch (error) {
-    logger.error('Failed to generate blog static params:', error);
+    logger.error('Failed to fetch Firestore articles for static params:', error);
   }
-  // Fallback to static articles
-  return staticArticles.map((article) => ({
-    slug: article.slug,
-  }));
+
+  return Array.from(slugs).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

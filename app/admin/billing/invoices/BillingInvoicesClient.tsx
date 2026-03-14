@@ -159,7 +159,7 @@ export default function BillingInvoicesClient(): React.ReactElement {
               <tbody className="divide-y divide-brand-primary/5">
                 {invoices.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-brand-bg/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-brand-text">{invoice.clientId}</td>
+                    <td className="px-6 py-4 font-medium text-brand-text">{invoice.clientName}</td>
                     <td className="px-6 py-4 text-brand-text">{invoice.projectName}</td>
                     <td className="px-6 py-4 font-medium text-brand-text">
                       ₩{invoice.totalAmount.toLocaleString('ko-KR')}

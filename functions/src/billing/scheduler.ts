@@ -37,34 +37,31 @@ function getSeoulDateString(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
 }
 
+// KST 기준 Date 객체 반환 (UTC+9 오프셋 적용)
+function getSeoulDate(): Date {
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000;
+  return new Date(now.getTime() + kstOffset);
+}
+
 // Seoul 현재 일(day) 반환
 function getSeoulDay(): number {
-  return parseInt(
-    new Date().toLocaleDateString("ko-KR", {
-      timeZone: "Asia/Seoul",
-      day: "numeric",
-    }),
-    10
-  );
+  return getSeoulDate().getUTCDate();
 }
 
 // Seoul 기준 YYYY-MM yearMonth 반환
 function getSeoulYearMonth(): string {
-  const d = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
-  return d.slice(0, 7); // "YYYY-MM"
+  const kst = getSeoulDate();
+  const year = kst.getUTCFullYear();
+  const month = String(kst.getUTCMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
 }
 
 // N일 후 Seoul 기준 day 반환
 function getSeoulDayAfter(days: number): number {
-  const now = new Date();
-  now.setDate(now.getDate() + days);
-  return parseInt(
-    now.toLocaleDateString("ko-KR", {
-      timeZone: "Asia/Seoul",
-      day: "numeric",
-    }),
-    10
-  );
+  const kst = getSeoulDate();
+  kst.setUTCDate(kst.getUTCDate() + days);
+  return kst.getUTCDate();
 }
 
 // 두 날짜 사이의 일수 차이 (Seoul 기준)
@@ -205,7 +202,9 @@ async function generateInvoices(settings: BillingSettingsDoc): Promise<void> {
     return;
   }
 
-  const batch = db.batch();
+  const BATCH_LIMIT = 500;
+  let batch = db.batch();
+  let batchCount = 0;
   let count = 0;
 
   for (const projectDoc of projectsSnap.docs) {
@@ -224,10 +223,16 @@ async function generateInvoices(settings: BillingSettingsDoc): Promise<void> {
     const amount = project.monthlyFee;
     const taxAmount = Math.round(amount * 0.1);
 
+    const clientSnap = await clientRef.get();
+    const clientName = clientSnap.exists
+      ? ((clientSnap.data() as BillingClientDoc).companyName || clientId)
+      : clientId;
+
     batch.set(
       invoiceRef,
       {
         clientId,
+        clientName,
         projectId,
         projectName: project.name,
         yearMonth,
@@ -250,11 +255,17 @@ async function generateInvoices(settings: BillingSettingsDoc): Promise<void> {
       { merge: false }
     );
     count++;
+    batchCount++;
+
+    if (batchCount >= BATCH_LIMIT) {
+      await batch.commit();
+      batch = db.batch();
+      batchCount = 0;
+    }
   }
 
-  await batch.commit();
+  if (batchCount > 0) await batch.commit();
   logger.info("generateInvoices: done", { count, yearMonth, todayDay });
-  void settings; // used by caller
 }
 
 // Step 2: pending invoice + 빌링키 → 페이플 출금

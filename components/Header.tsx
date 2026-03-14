@@ -29,6 +29,8 @@ export default function Header() {
     };
   }, [handleScroll]);
 
+  const menuRef = useRef<HTMLDivElement>(null);
+
   // Prevent scroll when mobile menu is open
   useEffect(() => {
     if (isMenuOpen) {
@@ -39,6 +41,43 @@ export default function Header() {
     return () => {
       document.body.style.overflow = '';
     };
+  }, [isMenuOpen]);
+
+  // Focus trap for mobile menu
+  useEffect(() => {
+    if (!isMenuOpen || !menuRef.current) return;
+
+    const menuEl = menuRef.current;
+    const focusableEls = menuEl.querySelectorAll<HTMLElement>(
+      'a[href], button, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstEl = focusableEls[0];
+    const lastEl = focusableEls[focusableEls.length - 1];
+
+    firstEl?.focus();
+
+    function handleKeyDown(e: globalThis.KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setIsMenuOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl?.focus();
+        }
+      } else {
+        if (document.activeElement === lastEl) {
+          e.preventDefault();
+          firstEl?.focus();
+        }
+      }
+    }
+
+    menuEl.addEventListener('keydown', handleKeyDown);
+    return () => menuEl.removeEventListener('keydown', handleKeyDown);
   }, [isMenuOpen]);
 
   const isActive = (path: string) => {
@@ -73,6 +112,7 @@ export default function Header() {
                 <Link
                   key={item.path}
                   href={item.path}
+                  aria-current={isActive(item.path) ? 'page' : undefined}
                   className={`text-[15px] transition-all relative ${isActive(item.path) ? 'font-bold text-brand-primary' : 'font-medium text-brand-text hover:text-brand-secondary'}`}
                 >
                   {item.name}
@@ -86,14 +126,14 @@ export default function Header() {
               ))}
             </nav>
             <Link href="/quote" className="bg-brand-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-brand-primary/90 hover:shadow-lg transition-all hover:-translate-y-0.5 active:scale-[0.98]">
-              견적 요청하기
+              무료 상담 신청하기
             </Link>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden flex items-center gap-4">
             <Link href="/quote" className="font-bold text-brand-primary text-sm bg-brand-bg px-3 py-2 rounded-lg border border-gray-200 active:scale-95 transition-transform">
-              견적 요청
+              무료 상담 신청
             </Link>
             <button
               className="text-brand-text p-2 -mr-2 focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:outline-none"
@@ -122,6 +162,7 @@ export default function Header() {
             role="dialog"
             aria-modal="true"
             aria-label="모바일 메뉴"
+            ref={menuRef}
             className="fixed inset-0 top-20 z-40 bg-brand-bg px-6 pb-20 pt-8 lg:hidden overflow-y-auto"
           >
             <nav className="flex flex-col gap-2 text-lg font-medium text-brand-primary">
@@ -137,7 +178,7 @@ export default function Header() {
               ))}
               <div className="h-px bg-gray-200 my-4"></div>
               <Link href="/quote" onClick={() => setIsMenuOpen(false)} className="bg-brand-primary text-white text-center py-4 rounded-xl font-bold shadow-md active:scale-[0.98] transition-transform">
-                견적 요청하기
+                무료 상담 신청하기
               </Link>
             </nav>
           </motion.div>

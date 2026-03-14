@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 // Simple SVG Logo Components
 const techLogos: { [key: string]: React.FC<{ className?: string }> } = {
@@ -71,94 +72,65 @@ const techs = [
     { name: 'AWS', color: '#FF9900' },
 ];
 
-export default function TechStackMarquee() {
+function TechItem({ tech }: { tech: { name: string; color: string } }) {
+    const LogoComponent = techLogos[tech.name];
     return (
-        <section className="w-full bg-brand-bg pb-16 lg:pb-24 overflow-hidden select-none relative">
-            {/* Premium Marquee Container with Fading Edges */}
-            <div className="relative w-full overflow-hidden">
+        <div className="flex items-center gap-4 group cursor-default">
+            {LogoComponent && (
+                <motion.div
+                    className="w-8 h-8 lg:w-10 lg:h-10 transition-all duration-300"
+                    style={{ color: tech.color }}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                >
+                    <LogoComponent className="w-full h-full grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300" />
+                </motion.div>
+            )}
+            {!LogoComponent && (
+                <div
+                    className="w-2 h-2 rounded-full transition-all duration-300 grayscale group-hover:grayscale-0"
+                    style={{ backgroundColor: tech.color, opacity: 0.4 }}
+                />
+            )}
+            <span className="text-lg lg:text-xl font-bold font-sans text-brand-muted group-hover:text-brand-primary transition-colors duration-300 tracking-tight">
+                {tech.name}
+            </span>
+        </div>
+    );
+}
+
+export default function TechStackMarquee() {
+    const isReducedMotion = useReducedMotion();
+    const [isPaused, setIsPaused] = useState(false);
+
+    return (
+        <section className="w-full bg-gradient-to-b from-brand-bg via-brand-bg to-white py-10 lg:py-16 overflow-hidden select-none relative">
+            <div
+                className="relative w-full overflow-hidden"
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+            >
                 {/* Fade Overlay Left */}
                 <div className="absolute left-0 top-0 bottom-0 w-32 z-20 bg-gradient-to-r from-brand-bg to-transparent pointer-events-none" />
-
                 {/* Fade Overlay Right */}
                 <div className="absolute right-0 top-0 bottom-0 w-32 z-20 bg-gradient-to-l from-brand-bg to-transparent pointer-events-none" />
 
                 <motion.div
                     className="flex whitespace-nowrap gap-12 lg:gap-20 items-center px-4 py-8"
-                    animate={{ x: ["0%", "-50%"] }}
-                    whileHover={{ transition: { duration: 80 } }}
-                    transition={{
+                    animate={isReducedMotion ? {} : { x: ["0%", "-50%"] }}
+                    transition={isReducedMotion ? {} : {
                         x: {
                             repeat: Infinity,
                             repeatType: "loop",
-                            duration: 40,
+                            duration: isPaused ? 80 : 40,
                             ease: "linear",
                         },
                     }}
                     style={{ width: "fit-content" }}
                 >
-                    {/* First Set */}
-                    {techs.map((tech, i) => {
-                        const LogoComponent = techLogos[tech.name];
-                        return (
-                            <div key={i} className="flex items-center gap-4 group cursor-default">
-                                {/* Logo Icon */}
-                                {LogoComponent && (
-                                    <motion.div
-                                        className="w-8 h-8 lg:w-10 lg:h-10 transition-all duration-300"
-                                        style={{ color: tech.color }}
-                                        whileHover={{ scale: 1.1, rotate: 5 }}
-                                    >
-                                        <LogoComponent className="w-full h-full grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300" />
-                                    </motion.div>
-                                )}
-
-                                {/* Dot indicator (fallback if no logo) */}
-                                {!LogoComponent && (
-                                    <div
-                                        className="w-2 h-2 rounded-full transition-all duration-300 grayscale group-hover:grayscale-0"
-                                        style={{ backgroundColor: tech.color, opacity: 0.4 }}
-                                    />
-                                )}
-
-                                {/* Name */}
-                                <span className="text-lg lg:text-xl font-bold font-sans text-brand-primary/30 group-hover:text-brand-primary transition-colors duration-300 tracking-tight">
-                                    {tech.name}
-                                </span>
-                            </div>
-                        );
-                    })}
-
-                    {/* Duplicate Set for Seamless Loop */}
-                    {techs.map((tech, i) => {
-                        const LogoComponent = techLogos[tech.name];
-                        return (
-                            <div key={`mirror-${i}`} className="flex items-center gap-4 group cursor-default">
-                                {/* Logo Icon */}
-                                {LogoComponent && (
-                                    <motion.div
-                                        className="w-8 h-8 lg:w-10 lg:h-10 transition-all duration-300"
-                                        style={{ color: tech.color }}
-                                        whileHover={{ scale: 1.1, rotate: 5 }}
-                                    >
-                                        <LogoComponent className="w-full h-full grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300" />
-                                    </motion.div>
-                                )}
-
-                                {/* Dot indicator (fallback if no logo) */}
-                                {!LogoComponent && (
-                                    <div
-                                        className="w-2 h-2 rounded-full transition-all duration-300 grayscale group-hover:grayscale-0"
-                                        style={{ backgroundColor: tech.color, opacity: 0.4 }}
-                                    />
-                                )}
-
-                                {/* Name */}
-                                <span className="text-lg lg:text-xl font-bold font-sans text-brand-primary/30 group-hover:text-brand-primary transition-colors duration-300 tracking-tight">
-                                    {tech.name}
-                                </span>
-                            </div>
-                        );
-                    })}
+                    {/* First Set + Duplicate for seamless loop */}
+                    {[...techs, ...techs].map((tech, i) => (
+                        <TechItem key={`${tech.name}-${i}`} tech={tech} />
+                    ))}
                 </motion.div>
             </div>
         </section>

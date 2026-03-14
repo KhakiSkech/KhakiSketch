@@ -1,11 +1,19 @@
 // functions/src/billing/payple-client.ts
+// TODO: 페이플 가맹 후 실제 API 문서 확인 필요
 import { logger } from "firebase-functions/v2";
 
 interface PaypleAuthResponse {
   result: "success" | "error";
-  token: string;
-  tokenExpire: string;
+  cst_id: string;
+  custKey: string;
+  AuthKey: string;
+  PCD_PAY_URL: string;
   errorMessage?: string;
+}
+
+interface PaypleAuthInfo {
+  authKey: string;
+  payUrl: string;
 }
 
 interface PaypleBillingPayParams {
@@ -58,13 +66,15 @@ export class PaypleClient {
       : "https://cpay.payple.kr";
   }
 
-  private async getAuthToken(): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/auth`, {
+  private async getAuthInfo(): Promise<PaypleAuthInfo> {
+    // TODO: 페이플 가맹 후 실제 API 문서 확인 필요
+    const response = await fetch(`${this.baseUrl}/php/auth.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         cst_id: this.clientId,
         custKey: this.clientSecret,
+        PCD_PAY_TYPE: "transfer",
       }),
     });
 
@@ -76,22 +86,22 @@ export class PaypleClient {
       throw new Error(msg);
     }
 
-    return data.token;
+    return { authKey: data.AuthKey, payUrl: data.PCD_PAY_URL };
   }
 
   async registerCmsBillingUrl(
     params: PaypleCmsRegisterParams
   ): Promise<PaypleCmsRegisterResult> {
     try {
-      const token = await this.getAuthToken();
+      const { authKey, payUrl } = await this.getAuthInfo();
 
-      const response = await fetch(`${this.baseUrl}/cms/register`, {
+      // TODO: 페이플 가맹 후 실제 API 문서 확인 필요
+      const response = await fetch(`${this.baseUrl}/php/cPayPaymentAct.php`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          PCD_AUTH_KEY: authKey,
+          PCD_PAY_URL: payUrl,
           PCD_PAY_TYPE: "transfer",
           PCD_PAY_WORK: "AUTH",
           PCD_PAYER_NAME: params.buyerName,
@@ -99,6 +109,7 @@ export class PaypleClient {
           PCD_PAYER_HP: params.buyerPhone,
           PCD_ORDER_KEY: params.orderId,
           PCD_RST_URL: params.returnUrl,
+          PCD_REGULER_FLAG: "Y",
         }),
       });
 
@@ -129,24 +140,26 @@ export class PaypleClient {
     params: PaypleBillingPayParams
   ): Promise<PayplePayResult> {
     try {
-      const token = await this.getAuthToken();
+      const { authKey, payUrl } = await this.getAuthInfo();
 
-      const response = await fetch(`${this.baseUrl}/payment`, {
+      // TODO: 페이플 가맹 후 실제 API 문서 확인 필요
+      const response = await fetch(`${this.baseUrl}/php/PayCardAct.php`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          PCD_AUTH_KEY: authKey,
+          PCD_PAY_URL: payUrl,
           PCD_PAY_TYPE: "transfer",
           PCD_PAY_WORK: "PAY",
           PCD_BILLING_KEY: params.billingKey,
           PCD_PAY_GOODS: params.productName,
           PCD_PAY_TOTAL: params.amount,
-          PCD_ORDER_KEY: params.orderId,
+          PCD_PAY_OID: params.orderId,
           PCD_PAYER_NAME: params.buyerName,
           PCD_PAYER_EMAIL: params.buyerEmail,
           PCD_PAYER_HP: params.buyerPhone,
+          PCD_REGULER_FLAG: "Y",
+          PCD_PAY_BANKACCTYPE: "Y",
         }),
       });
 
@@ -186,15 +199,17 @@ export class PaypleClient {
     paymentId: string
   ): Promise<PayplePaymentStatusResult> {
     try {
-      const token = await this.getAuthToken();
+      const { authKey, payUrl } = await this.getAuthInfo();
 
-      const response = await fetch(`${this.baseUrl}/payment/status`, {
+      // TODO: 페이플 가맹 후 실제 API 문서 확인 필요
+      const response = await fetch(`${this.baseUrl}/php/PaymentStatusAct.php`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ PCD_PAY_OID: paymentId }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          PCD_AUTH_KEY: authKey,
+          PCD_PAY_URL: payUrl,
+          PCD_PAY_OID: paymentId,
+        }),
       });
 
       const data = (await response.json()) as Record<string, unknown>;

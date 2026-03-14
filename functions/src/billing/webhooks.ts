@@ -71,14 +71,22 @@ export const paypleWebhook = onRequest(
 
     const db = admin.firestore();
 
-    // orderId 형식: {projectId}_{yearMonth} — billing-clients 하위 invoice 탐색
-    const invoicesSnap = await db
-      .collectionGroup("invoices")
-      .where(admin.firestore.FieldPath.documentId(), "==", orderId)
-      .limit(1)
-      .get();
+    // orderId 형식: {clientId}/{invoiceId}
+    const slashIdx = orderId.indexOf("/");
+    if (slashIdx === -1) {
+      logger.warn("paypleWebhook: invalid orderId format", { orderId });
+      res.status(400).json({ error: "Invalid orderId format" });
+      return;
+    }
+    const webhookClientId = orderId.slice(0, slashIdx);
+    const webhookInvoiceId = orderId.slice(slashIdx + 1);
 
-    if (invoicesSnap.empty) {
+    const invoiceRef = db.doc(
+      `billing-clients/${webhookClientId}/invoices/${webhookInvoiceId}`
+    );
+    const invoiceSnap = await invoiceRef.get();
+
+    if (!invoiceSnap.exists) {
       logger.warn("paypleWebhook: invoice not found", { orderId });
       // 로그만 남기고 200 응답 (재전송 방지)
       await db.collection("billing-notification-logs").add({
@@ -97,16 +105,9 @@ export const paypleWebhook = onRequest(
       return;
     }
 
-    const invoiceDoc = invoicesSnap.docs[0];
-    const invoice = invoiceDoc.data() as BillingInvoiceDoc;
-    const invoiceRef = invoiceDoc.ref;
+    const invoice = invoiceSnap.data() as BillingInvoiceDoc;
 
-    const clientRef = invoiceRef.parent.parent;
-    if (!clientRef) {
-      logger.error("paypleWebhook: cannot resolve clientRef", { orderId });
-      res.status(200).json({ ok: true });
-      return;
-    }
+    const clientRef = db.doc(`billing-clients/${webhookClientId}`);
 
     const [clientSnap, settingsSnap] = await Promise.all([
       clientRef.get(),
@@ -182,7 +183,7 @@ export const paypleWebhook = onRequest(
             invoice.yearMonth.replace("-", "년 ") + "월";
 
           const issueResult = await popbill.registIssue({
-            mgtKey: invoiceDoc.id,
+            mgtKey: webhookInvoiceId,
             writeDate: today,
             issuer: {
               corpNum: settings.supplierRegNo,
@@ -225,7 +226,7 @@ export const paypleWebhook = onRequest(
 
           if (issueResult.success) {
             await invoiceRef.update({
-              taxInvoiceId: issueResult.taxInvoiceId ?? invoiceDoc.id,
+              taxInvoiceId: issueResult.taxInvoiceId ?? webhookInvoiceId,
               updatedAt: FieldValue.serverTimestamp(),
             });
           } else {

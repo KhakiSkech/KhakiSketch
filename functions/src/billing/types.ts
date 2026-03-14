@@ -37,6 +37,7 @@ export interface BillingProjectDoc {
 
 export interface BillingInvoiceDoc {
   clientId: string;
+  clientName: string;
   projectId: string;
   projectName: string;
   yearMonth: string;

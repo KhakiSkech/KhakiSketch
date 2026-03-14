@@ -44,6 +44,7 @@ export type InvoiceStatus = 'pending' | 'paid' | 'overdue' | 'waived' | 'failed'
 export interface BillingInvoice {
   id: string; // {projectId}_{yearMonth}
   clientId: string;
+  clientName: string;
   projectId: string;
   projectName: string;
   yearMonth: string;

@@ -63,13 +63,13 @@ const ServiceCard = ({
   <Link href={href} className="block h-full">
     <motion.div
       whileHover="hover"
-      className="bg-white flex flex-col items-center p-8 lg:p-10 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 h-full group hover:-translate-y-1 cursor-pointer"
+      className="bg-white flex flex-col items-center p-5 lg:p-10 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 h-full group hover:-translate-y-1 cursor-pointer"
     >
-      <div className="mb-6 p-4 rounded-2xl bg-brand-bg group-hover:bg-brand-primary/5 transition-colors">
+      <div className="mb-4 lg:mb-6 p-4 rounded-2xl bg-brand-bg group-hover:bg-brand-primary/5 transition-colors">
         <Icon />
       </div>
 
-      <div className="flex flex-col gap-2 items-center text-center w-full mb-6">
+      <div className="flex flex-col gap-2 items-center text-center w-full mb-4 lg:mb-6">
         <span className="text-brand-secondary font-bold text-xs tracking-wider uppercase bg-brand-bg px-3 py-1 rounded-full">
           {label}
         </span>
@@ -81,7 +81,7 @@ const ServiceCard = ({
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 w-full mb-6 flex-grow">
+      <div className="flex flex-col gap-2 lg:gap-3 w-full mb-4 lg:mb-6 flex-grow">
         {items.map((item, index) => (
           <div key={index} className="flex gap-3 items-start">
             <CheckIcon />
@@ -101,81 +101,100 @@ const ServiceCard = ({
   </Link>
 );
 
-export default function Expertise({ title = "Our Expertise" }: { title?: string }) {
+const cards = [
+  {
+    icon: MVPIcon,
+    title: "MVP / 웹·SW 개발",
+    label: "스타트업 / 신규 서비스",
+    description: "실제 작동하는 제품을 만듭니다",
+    items: [
+      "핵심 기능 우선(Must-have) 설계",
+      "데모/런칭 일정 맞춤",
+      "주간 진행 공유 및 피드백",
+      "지원사업 행정/보고 지원"
+    ],
+    href: "/services/startup-mvp",
+  },
+  {
+    icon: AutomationIcon,
+    title: "업무 자동화",
+    label: "기존 기업 / 운영 효율화",
+    description: "반복 업무를 시스템으로 해결합니다",
+    items: [
+      "현재 업무 프로세스 분석",
+      "엑셀/수기 업무 웹 전환",
+      "데이터 수집·리포트 자동화",
+      "실시간 대시보드 구축"
+    ],
+    href: "/services/business-automation",
+  },
+  {
+    icon: HomepageIcon,
+    title: "기업 홈페이지",
+    label: "브랜드 / 기업 소개",
+    description: "깔끔한 기업 소개 웹사이트",
+    items: [
+      "5~7페이지 구성",
+      "반응형 디자인 (PC/모바일)",
+      "기본 SEO 적용",
+      "문의 폼 연동"
+    ],
+    href: "/services/corporate-website",
+  },
+];
+
+export default function Expertise({ title = "무엇을 만들 수 있나요?" }: { title?: string }) {
   return (
-    <section className="bg-brand-bg w-full py-20 lg:py-28" id="services">
-      <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 flex flex-col items-start gap-16">
+    <section id="services" className="w-full bg-brand-bg py-20 lg:py-28">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Header */}
         <ScrollReveal>
-          <div className="flex flex-col gap-6 max-w-3xl">
-            <h2 className="font-bold text-4xl lg:text-5xl text-brand-primary tracking-tight">
+          <div className="flex flex-col gap-4 mb-12 lg:mb-16">
+            <span className="text-brand-secondary font-bold text-sm tracking-widest uppercase">
+              Our Expertise
+            </span>
+            <h2 className="font-bold text-3xl lg:text-4xl text-brand-primary tracking-tight leading-tight">
               {title}
             </h2>
-            <p className="font-medium text-xl lg:text-2xl text-brand-primary/80 leading-relaxed whitespace-pre-wrap break-keep">
-              현장의 문제를 기술로 해결합니다.{'\n'}
+            <p className="text-lg text-brand-muted leading-relaxed break-keep">
+              현장의 문제를 기술로 해결합니다.
               단순 웹사이트 제작이 아닌, 비즈니스 로직을 담은 제품을 만듭니다.
             </p>
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 w-full">
-          <ScrollReveal delay={100} className="h-full">
-            <ServiceCard
-              icon={MVPIcon}
-              title="MVP / 웹·SW 개발"
-              label="스타트업 / 신규 서비스"
-              description="실제 작동하는 제품을 만듭니다"
-              items={[
-                "핵심 기능 우선(Must-have) 설계",
-                "데모/런칭 일정 맞춤",
-                "주간 진행 공유 및 피드백",
-                "지원사업 행정/보고 지원"
-              ]}
-              href="/services/startup-mvp"
-            />
-          </ScrollReveal>
-          <ScrollReveal delay={200} className="h-full">
-            <ServiceCard
-              icon={AutomationIcon}
-              title="업무 자동화"
-              label="기존 기업 / 운영 효율화"
-              description="반복 업무를 시스템으로 해결합니다"
-              items={[
-                "현재 업무 프로세스 분석",
-                "엑셀/수기 업무 웹 전환",
-                "데이터 수집·리포트 자동화",
-                "실시간 대시보드 구축"
-              ]}
-              href="/services/business-automation"
-            />
-          </ScrollReveal>
-          <ScrollReveal delay={300} className="h-full">
-            <ServiceCard
-              icon={HomepageIcon}
-              title="기업 홈페이지"
-              label="브랜드 / 기업 소개"
-              description="깔끔한 기업 소개 웹사이트"
-              items={[
-                "5~7페이지 구성",
-                "반응형 디자인 (PC/모바일)",
-                "기본 SEO 적용",
-                "문의 폼 연동"
-              ]}
-              href="/services/corporate-website"
-            />
-          </ScrollReveal>
+        {/* Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          {cards.map((card, i) => (
+            <ScrollReveal key={i} delay={i * 100}>
+              <ServiceCard {...card} />
+            </ScrollReveal>
+          ))}
         </div>
 
-        <div className="w-full text-center">
-          <Link
-            href="/pricing"
-            className="inline-flex items-center gap-2 text-brand-secondary font-semibold hover:underline"
-          >
-            가격 안내 보기
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
-        </div>
+        {/* Footer */}
+        <ScrollReveal>
+          <div className="flex flex-col gap-5 mt-10 lg:mt-14">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-2 text-brand-secondary font-semibold hover:underline"
+            >
+              가격 안내 보기
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+            <Link
+              href="/quote"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand-primary text-white font-bold text-sm shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 group w-fit"
+            >
+              내 프로젝트 상담받기
+              <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+          </div>
+        </ScrollReveal>
       </div>
     </section>
   );

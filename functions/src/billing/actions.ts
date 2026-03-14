@@ -98,7 +98,12 @@ export const registerCmsBilling = onCall(
     );
 
     const orderId = `cms_${clientId}_${Date.now()}`;
-    const returnUrl = `https://us-central1-khakisketch.cloudfunctions.net/paypleWebhook`;
+    const projectId =
+      process.env.GCLOUD_PROJECT ??
+      (process.env.FIREBASE_CONFIG
+        ? (JSON.parse(process.env.FIREBASE_CONFIG) as { projectId: string }).projectId
+        : "khakisketch");
+    const returnUrl = `https://asia-northeast3-${projectId}.cloudfunctions.net/paypleWebhook`;
 
     const regResult = await payple.registerCmsBillingUrl({
       orderId,
@@ -169,19 +174,14 @@ export const confirmPayment = onCall(
 
     const db = admin.firestore();
 
-    // invoiceId를 docId로 찾기 (collectionGroup)
-    const invoicesSnap = await db
-      .collectionGroup("invoices")
-      .where(admin.firestore.FieldPath.documentId(), "==", invoiceId)
-      .limit(1)
-      .get();
+    const invoiceRef = db.doc(`billing-clients/${clientId}/invoices/${invoiceId}`);
+    const invoiceSnap = await invoiceRef.get();
 
-    if (invoicesSnap.empty) {
+    if (!invoiceSnap.exists) {
       throw new HttpsError("not-found", "청구서를 찾을 수 없습니다.");
     }
 
-    const invoiceDoc = invoicesSnap.docs[0];
-    const invoice = invoiceDoc.data() as BillingInvoiceDoc;
+    const invoice = invoiceSnap.data() as BillingInvoiceDoc;
 
     if (invoice.status === "paid" || invoice.status === "waived") {
       throw new HttpsError(
@@ -192,7 +192,7 @@ export const confirmPayment = onCall(
 
     const confirmedBy = request.auth?.uid ?? "unknown";
 
-    await invoiceDoc.ref.update({
+    await invoiceRef.update({
       status: "paid",
       paidAt: FieldValue.serverTimestamp(),
       confirmedBy,
@@ -225,24 +225,20 @@ export const waiveInvoice = onCall(
 
     const db = admin.firestore();
 
-    const invoicesSnap = await db
-      .collectionGroup("invoices")
-      .where(admin.firestore.FieldPath.documentId(), "==", invoiceId)
-      .limit(1)
-      .get();
+    const invoiceRef = db.doc(`billing-clients/${clientId}/invoices/${invoiceId}`);
+    const invoiceSnap = await invoiceRef.get();
 
-    if (invoicesSnap.empty) {
+    if (!invoiceSnap.exists) {
       throw new HttpsError("not-found", "청구서를 찾을 수 없습니다.");
     }
 
-    const invoiceDoc = invoicesSnap.docs[0];
-    const invoice = invoiceDoc.data() as BillingInvoiceDoc;
+    const invoice = invoiceSnap.data() as BillingInvoiceDoc;
 
     if (invoice.status === "paid") {
       throw new HttpsError("failed-precondition", "이미 납부 완료 상태입니다.");
     }
 
-    await invoiceDoc.ref.update({
+    await invoiceRef.update({
       status: "waived",
       confirmedBy: request.auth?.uid ?? "unknown",
       updatedAt: FieldValue.serverTimestamp(),
@@ -427,18 +423,14 @@ export const issueTaxInvoice = onCall(
 
     const db = admin.firestore();
 
-    const invoicesSnap = await db
-      .collectionGroup("invoices")
-      .where(admin.firestore.FieldPath.documentId(), "==", invoiceId)
-      .limit(1)
-      .get();
+    const invoiceRef = db.doc(`billing-clients/${clientId}/invoices/${invoiceId}`);
+    const invoiceSnap = await invoiceRef.get();
 
-    if (invoicesSnap.empty) {
+    if (!invoiceSnap.exists) {
       throw new HttpsError("not-found", "청구서를 찾을 수 없습니다.");
     }
 
-    const invoiceDoc = invoicesSnap.docs[0];
-    const invoice = invoiceDoc.data() as BillingInvoiceDoc;
+    const invoice = invoiceSnap.data() as BillingInvoiceDoc;
 
     if (invoice.status !== "paid") {
       throw new HttpsError(
@@ -447,10 +439,7 @@ export const issueTaxInvoice = onCall(
       );
     }
 
-    const clientRef = invoiceDoc.ref.parent.parent;
-    if (!clientRef) {
-      throw new HttpsError("internal", "클라이언트 참조를 찾을 수 없습니다.");
-    }
+    const clientRef = db.doc(`billing-clients/${clientId}`);
 
     const [clientSnap, settings] = await Promise.all([
       clientRef.get(),
@@ -474,7 +463,7 @@ export const issueTaxInvoice = onCall(
     const yearMonthLabel = invoice.yearMonth.replace("-", "년 ") + "월";
 
     const issueResult = await popbill.registIssue({
-      mgtKey: invoiceDoc.id,
+      mgtKey: invoiceId,
       writeDate: today,
       issuer: {
         corpNum: settings.supplierRegNo,
@@ -526,8 +515,8 @@ export const issueTaxInvoice = onCall(
       );
     }
 
-    await invoiceDoc.ref.update({
-      taxInvoiceId: issueResult.taxInvoiceId ?? invoiceDoc.id,
+    await invoiceRef.update({
+      taxInvoiceId: issueResult.taxInvoiceId ?? invoiceId,
       updatedAt: FieldValue.serverTimestamp(),
     });
 
