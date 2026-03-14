@@ -313,7 +313,7 @@ async function requestCmsPayments(
       const payResult = await payple.requestBillingPay({
         billingKey: clientData.paypleBillingKey,
         amount: invoice.totalAmount,
-        orderId: invoiceDoc.id,
+        orderId: `${clientRef.id}/${invoiceDoc.id}`,
         productName: `${invoice.projectName} ${invoice.yearMonth} 운영관리비`,
         buyerName: clientData.contactName,
         buyerEmail: clientData.email,
@@ -532,7 +532,6 @@ async function updateOverdueAndNotify(
 ): Promise<void> {
   const db = admin.firestore();
   const todayStr = getSeoulDateString();
-  const todayDate = new Date(todayStr + "T00:00:00+09:00");
 
   const invoicesSnap = await db
     .collectionGroup("invoices")
@@ -619,7 +618,7 @@ async function updateOverdueAndNotify(
         const payResult = await payple.requestBillingPay({
           billingKey: clientData.paypleBillingKey,
           amount: invoice.totalAmount,
-          orderId: invoiceDoc.id,
+          orderId: `${clientRef.id}/${invoiceDoc.id}`,
           productName: `${invoice.projectName} ${invoice.yearMonth} 운영관리비`,
           buyerName: clientData.contactName,
           buyerEmail: clientData.email,
@@ -736,7 +735,6 @@ async function updateOverdueAndNotify(
     }
   }
 
-  void todayDate;
   logger.info("updateOverdueAndNotify: done", { total: invoicesSnap.size });
 }
 
