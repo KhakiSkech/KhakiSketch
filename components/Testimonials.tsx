@@ -1,10 +1,12 @@
 'use client';
 
 import { logger } from '@/lib/logger';
-import React, { useState, useEffect } from 'react';
-import ScrollDrivenSlider from './ui/ScrollDrivenSlider';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { getTestimonials } from '@/lib/firestore-site-settings';
 import type { TestimonialItem } from '@/types/admin';
+import ScrollReveal from '@/components/ui/ScrollReveal';
 
 // 정적 fallback 데이터
 const STATIC_TESTIMONIALS: TestimonialItem[] = [
@@ -64,6 +66,8 @@ const STATIC_TESTIMONIALS: TestimonialItem[] = [
   },
 ];
 
+const AUTO_PLAY_INTERVAL = 5000;
+
 // Star Rating
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -86,22 +90,15 @@ function StarRating({ rating }: { rating: number }) {
 // Testimonial Card
 function TestimonialCard({ testimonial }: { testimonial: TestimonialItem }) {
   return (
-    <div className="bg-brand-bg rounded-2xl p-5 lg:p-10 border border-gray-100 h-full flex flex-col">
-      {/* Quote icon */}
-      <svg className="w-10 h-10 text-brand-secondary/20 mb-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+    <div className="bg-brand-bg rounded-2xl p-5 lg:p-8 border border-gray-100 h-full flex flex-col">
+      <svg className="w-8 h-8 text-brand-secondary/20 mb-3 shrink-0" fill="currentColor" viewBox="0 0 24 24">
         <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
       </svg>
-
-      {/* Star rating */}
       {testimonial.rating && <StarRating rating={testimonial.rating} />}
-
-      {/* Content */}
-      <p className="text-brand-text text-base lg:text-lg leading-relaxed flex-grow break-keep mt-4">
+      <p className="text-brand-text text-base lg:text-lg leading-relaxed flex-grow break-keep mt-3">
         &ldquo;{testimonial.content}&rdquo;
       </p>
-
-      {/* Author */}
-      <div className="flex flex-col gap-2 pt-5 border-t border-gray-100 mt-6">
+      <div className="flex flex-col gap-2 pt-4 border-t border-gray-100 mt-5">
         <div className="flex items-center justify-between">
           <span className="font-bold text-brand-primary">{testimonial.author}</span>
           <span className="px-3 py-1 bg-brand-secondary/10 text-brand-secondary text-xs font-medium rounded-full">
@@ -117,6 +114,10 @@ function TestimonialCard({ testimonial }: { testimonial: TestimonialItem }) {
 export default function Testimonials() {
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>(STATIC_TESTIMONIALS);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const isReducedMotion = useReducedMotion();
+  const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   useEffect(() => {
     async function loadTestimonials() {
@@ -135,34 +136,44 @@ export default function Testimonials() {
     loadTestimonials();
   }, []);
 
-  const header = (
-    <div className="flex flex-col gap-4">
-      <span className="text-brand-secondary font-bold text-sm tracking-widest uppercase">
-        Client Feedback
-      </span>
-      <h2 className="font-bold text-3xl lg:text-4xl text-brand-primary tracking-tight leading-tight">
-        함께한 고객들의 이야기
-      </h2>
-      <p className="text-lg text-brand-muted leading-relaxed break-keep">
-        실제 프로젝트를 진행하신 분들의 솔직한 후기입니다.
-      </p>
-    </div>
-  );
+  // 자동 재생
+  useEffect(() => {
+    if (isPaused || isReducedMotion || testimonials.length <= 1) return;
+    timerRef.current = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    }, AUTO_PLAY_INTERVAL);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [isPaused, isReducedMotion, testimonials.length]);
 
-  const footer = (
-    <p className="text-brand-muted text-sm">
-      * 고객사 요청에 따라 기업명은 익명 처리하였습니다.
-    </p>
-  );
+  const goTo = useCallback((index: number) => {
+    setCurrentIndex(index);
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), AUTO_PLAY_INTERVAL * 2);
+  }, []);
 
-  // Loading state
+  const goPrev = useCallback(() => {
+    goTo((currentIndex - 1 + testimonials.length) % testimonials.length);
+  }, [currentIndex, testimonials.length, goTo]);
+
+  const goNext = useCallback(() => {
+    goTo((currentIndex + 1) % testimonials.length);
+  }, [currentIndex, testimonials.length, goTo]);
+
+  // 한 번에 보여줄 카드 수: 데스크톱 2개, 모바일 1개 (CSS로 처리)
+  const getVisibleCards = () => {
+    const cards: TestimonialItem[] = [];
+    for (let i = 0; i < 2; i++) {
+      cards.push(testimonials[(currentIndex + i) % testimonials.length]);
+    }
+    return cards;
+  };
+
   if (isLoading) {
     return (
       <section className="w-full bg-white py-14 lg:py-20" id="testimonials" aria-busy="true">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="mb-10">{header}</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {[1, 2, 3].map((i) => (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
               <div key={i} className="h-64 bg-brand-bg rounded-2xl animate-pulse" />
             ))}
           </div>
@@ -171,16 +182,119 @@ export default function Testimonials() {
     );
   }
 
+  const visibleCards = getVisibleCards();
+
   return (
-    <ScrollDrivenSlider
+    <section
+      className="w-full bg-white py-14 lg:py-20"
       id="testimonials"
-      bgColor="bg-white"
-      header={header}
-      cards={testimonials.map((t) => (
-        <TestimonialCard key={t.id} testimonial={t} />
-      ))}
-      footer={footer}
-      scrollHeight={3.0}
-    />
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <ScrollReveal>
+          {/* Header */}
+          <div className="flex items-end justify-between mb-10 lg:mb-12">
+            <div className="flex flex-col gap-3">
+              <span className="text-brand-secondary font-bold text-sm tracking-widest uppercase">
+                Client Feedback
+              </span>
+              <h2 className="font-bold text-3xl lg:text-4xl text-brand-primary tracking-tight leading-tight">
+                함께한 고객들의 이야기
+              </h2>
+              <p className="text-lg text-brand-muted leading-relaxed break-keep">
+                실제 프로젝트를 진행하신 분들의 솔직한 후기입니다.
+              </p>
+            </div>
+
+            {/* 좌우 버튼 */}
+            <div className="hidden lg:flex items-center gap-2">
+              <button
+                onClick={goPrev}
+                className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-bg transition-colors"
+                aria-label="이전 후기"
+              >
+                <svg className="w-5 h-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={goNext}
+                className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-bg transition-colors"
+                aria-label="다음 후기"
+              >
+                <svg className="w-5 h-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Cards */}
+          <div className="relative overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentIndex}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+                initial={isReducedMotion ? false : { opacity: 0, x: 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={isReducedMotion ? undefined : { opacity: 0, x: -40 }}
+                transition={isReducedMotion ? { duration: 0 } : { duration: 0.4, ease: 'easeInOut' }}
+              >
+                {visibleCards.map((t) => (
+                  <TestimonialCard key={t.id} testimonial={t} />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Dots + Footer */}
+          <div className="flex items-center justify-between mt-8">
+            <div className="flex gap-2">
+              {testimonials.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                    i === currentIndex
+                      ? 'bg-brand-secondary w-6'
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                  aria-label={`후기 ${i + 1}번으로 이동`}
+                />
+              ))}
+            </div>
+            <p className="text-brand-muted text-sm">
+              * 고객사 요청에 따라 기업명은 익명 처리하였습니다.
+            </p>
+          </div>
+
+          {/* 모바일 좌우 버튼 */}
+          <div className="flex lg:hidden items-center justify-center gap-4 mt-6">
+            <button
+              onClick={goPrev}
+              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center"
+              aria-label="이전 후기"
+            >
+              <svg className="w-5 h-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span className="text-sm text-brand-muted">
+              {currentIndex + 1} / {testimonials.length}
+            </span>
+            <button
+              onClick={goNext}
+              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center"
+              aria-label="다음 후기"
+            >
+              <svg className="w-5 h-5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </ScrollReveal>
+      </div>
+    </section>
   );
 }

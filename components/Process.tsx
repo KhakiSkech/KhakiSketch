@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import ScrollDrivenSlider from './ui/ScrollDrivenSlider';
+import ScrollReveal from '@/components/ui/ScrollReveal';
 
 const steps = [
   {
@@ -17,7 +17,7 @@ const steps = [
       '와이어프레임 / 화면 설계',
     ],
     icon: (
-      <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
     ),
@@ -34,7 +34,7 @@ const steps = [
       '코드 리뷰 및 품질 관리',
     ],
     icon: (
-      <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
       </svg>
     ),
@@ -51,7 +51,7 @@ const steps = [
       '운영 매뉴얼 및 교육',
     ],
     icon: (
-      <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
@@ -68,100 +68,111 @@ const steps = [
       '장기 유지보수 계약 가능',
     ],
     icon: (
-      <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
       </svg>
     ),
   },
 ];
 
-const ProcessCard = ({ step }: { step: typeof steps[number] }) => (
-  <div className="bg-white rounded-2xl p-5 lg:p-10 shadow-lg border border-gray-100 h-full flex flex-col">
-    {/* Step label */}
-    <div className="flex items-center gap-3 mb-4 lg:mb-8">
-      <span className="text-brand-secondary font-mono text-xs font-bold tracking-widest uppercase">
-        Step
-      </span>
-      <span className="text-brand-primary font-mono text-3xl lg:text-4xl font-bold">
-        {step.number}
-      </span>
-    </div>
-
-    {/* Icon */}
-    <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-brand-primary flex items-center justify-center mb-4 lg:mb-6 shadow-md shadow-brand-primary/20">
-      <span className="text-white">{step.icon}</span>
-    </div>
-
-    {/* Title & description */}
-    <h3 className="font-bold text-xl lg:text-3xl text-brand-primary tracking-tight mb-2 lg:mb-3">
-      {step.title}
-    </h3>
-    <p className="text-brand-muted text-base lg:text-lg leading-relaxed break-keep mb-4 lg:mb-8">
-      {step.description}
-    </p>
-
-    {/* Details list */}
-    <div className="flex flex-col gap-2 lg:gap-3 mt-auto">
-      {step.details.map((detail, i) => (
-        <div key={i} className="flex gap-3 items-start">
-          <svg
-            width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="3" strokeLinecap="round"
-            strokeLinejoin="round" className="text-brand-secondary shrink-0 mt-0.5"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          <span className="font-medium text-brand-primary text-sm leading-snug">
-            {detail}
-          </span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
 export default function Process() {
-  const header = (
-    <div className="flex flex-col gap-4">
-      <span className="text-brand-secondary font-bold text-sm tracking-widest uppercase">
-        Work Process
-      </span>
-      <h2 className="font-bold text-3xl lg:text-4xl text-brand-primary tracking-tight leading-tight">
-        투명한 과정, 예측 가능한 결과.
-      </h2>
-      <p className="text-lg text-brand-muted leading-relaxed break-keep">
-        모든 과정은 클라이언트와 투명하게 공유됩니다.
-      </p>
-    </div>
-  );
-
-  const footer = (
-    <Link
-      href="/process"
-      className="group inline-flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl border-2 border-brand-primary text-brand-primary font-bold text-base hover:bg-brand-primary hover:text-white hover:-translate-y-0.5 active:scale-[0.98] transition-all"
-    >
-      프로세스 자세히 보기
-      <svg
-        className="w-5 h-5 transition-transform group-hover:translate-x-1"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-      </svg>
-    </Link>
-  );
-
   return (
-    <ScrollDrivenSlider
-      id="process"
-      bgColor="bg-white"
-      header={header}
-      cards={steps.map((step, i) => (
-        <ProcessCard key={i} step={step} />
-      ))}
-      footer={footer}
-      scrollHeight={2.5}
-    />
+    <section className="w-full bg-white py-14 lg:py-20" id="process">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <ScrollReveal>
+          {/* Header */}
+          <div className="flex items-end justify-between mb-10 lg:mb-14">
+            <div className="flex flex-col gap-3">
+              <span className="text-brand-secondary font-bold text-sm tracking-widest uppercase">
+                Work Process
+              </span>
+              <h2 className="font-bold text-3xl lg:text-4xl text-brand-primary tracking-tight leading-tight">
+                투명한 과정, 예측 가능한 결과.
+              </h2>
+              <p className="text-lg text-brand-muted leading-relaxed break-keep">
+                모든 과정은 클라이언트와 투명하게 공유됩니다.
+              </p>
+            </div>
+            <Link
+              href="/process"
+              className="hidden lg:inline-flex group items-center justify-center gap-3 px-6 py-3 rounded-xl border-2 border-brand-primary text-brand-primary font-bold text-sm hover:bg-brand-primary hover:text-white hover:-translate-y-0.5 active:scale-[0.98] transition-all"
+            >
+              자세히 보기
+              <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+          </div>
+        </ScrollReveal>
+
+        {/* 4-column 정적 그리드 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
+          {steps.map((step, i) => (
+            <ScrollReveal key={i}>
+              <div className="bg-brand-bg rounded-2xl p-5 lg:p-6 border border-gray-100 h-full flex flex-col relative overflow-hidden group hover:border-brand-secondary/30 hover:shadow-md transition-all duration-300">
+                {/* Step number background */}
+                <span className="absolute -top-2 -right-2 text-[80px] font-bold text-brand-primary/[0.04] leading-none select-none">
+                  {step.number}
+                </span>
+
+                {/* Step label */}
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-brand-secondary font-mono text-xs font-bold tracking-widest uppercase">
+                    Step
+                  </span>
+                  <span className="text-brand-primary font-mono text-2xl font-bold">
+                    {step.number}
+                  </span>
+                </div>
+
+                {/* Icon */}
+                <div className="w-11 h-11 rounded-xl bg-brand-primary flex items-center justify-center mb-4 shadow-sm shadow-brand-primary/20">
+                  <span className="text-white">{step.icon}</span>
+                </div>
+
+                {/* Title & description */}
+                <h3 className="font-bold text-lg text-brand-primary tracking-tight mb-2">
+                  {step.title}
+                </h3>
+                <p className="text-brand-muted text-sm leading-relaxed break-keep mb-4">
+                  {step.description}
+                </p>
+
+                {/* Details list */}
+                <div className="flex flex-col gap-2 mt-auto">
+                  {step.details.map((detail, j) => (
+                    <div key={j} className="flex gap-2 items-start">
+                      <svg
+                        width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="3" strokeLinecap="round"
+                        strokeLinejoin="round" className="text-brand-secondary shrink-0 mt-0.5"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span className="font-medium text-brand-primary text-xs leading-snug">
+                        {detail}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+
+        {/* 모바일 CTA */}
+        <div className="flex lg:hidden justify-center mt-8">
+          <Link
+            href="/process"
+            className="group inline-flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl border-2 border-brand-primary text-brand-primary font-bold text-base hover:bg-brand-primary hover:text-white transition-all"
+          >
+            프로세스 자세히 보기
+            <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
