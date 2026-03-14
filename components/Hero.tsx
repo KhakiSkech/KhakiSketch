@@ -258,7 +258,7 @@ export default function Hero() {
               className="flex items-center gap-6 lg:gap-8 mt-8 pt-6 border-t border-gray-200/60"
             >
               <div className="text-center">
-                <span className="block text-2xl lg:text-3xl font-bold text-brand-primary">12+</span>
+                <span className="block text-2xl lg:text-3xl font-bold text-brand-primary">47+</span>
                 <span className="text-xs text-brand-muted">완료 프로젝트</span>
               </div>
               <div className="w-px h-8 bg-gray-200" />

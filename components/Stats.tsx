@@ -12,7 +12,7 @@ const STATIC_STATS = [
   { value: 47, suffix: '+', label: '완료 프로젝트' },
   { value: 98, suffix: '%', label: '고객 만족도' },
   { value: 73, suffix: '%', label: '재계약/추천률' },
-  { value: 0, suffix: '명', label: '중간 관리자' },
+  { value: 3.2, suffix: '개월', label: '평균 납기' },
 ];
 
 function StatItem({ value, suffix, label, index, reducedMotion }: {
@@ -113,7 +113,7 @@ export default function Stats() {
             { value: data.completedProjects ?? 47, suffix: '+', label: '완료 프로젝트' },
             { value: data.customerSatisfaction ?? 98, suffix: '%', label: '고객 만족도' },
             { value: data.repeatOrderRate ?? 73, suffix: '%', label: '재계약/추천률' },
-            { value: 0, suffix: '명', label: '중간 관리자' },
+            { value: 3.2, suffix: '개월', label: '평균 납기' },
           ]);
         }
       } catch (error) {
@@ -206,7 +206,7 @@ export default function Stats() {
         </motion.p>
 
         {/* ── Target Audience Personas ── */}
-        <div className="mt-16 lg:mt-20">
+        <div className="mt-10 lg:mt-12">
           <motion.h3
             className="text-center font-bold text-2xl lg:text-3xl text-brand-primary tracking-tight mb-8 lg:mb-10"
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
