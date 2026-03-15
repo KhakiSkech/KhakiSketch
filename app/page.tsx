@@ -41,7 +41,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between">
       {/* 1. Hook — 문제 제기 */}
       <Hero />
-      <div className="w-full bg-brand-bg pt-4 pb-2">
+      <div className="w-full bg-brand-bg pt-1 pb-0">
         <div className="flex items-center justify-center gap-4 opacity-50">
           <span className="w-8 h-px bg-brand-primary" />
           <span className="text-xs font-bold text-brand-primary tracking-[0.2em] uppercase">

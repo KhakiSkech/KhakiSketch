@@ -103,7 +103,7 @@ export default function TechStackMarquee() {
     const [isPaused, setIsPaused] = useState(false);
 
     return (
-        <section className="w-full bg-gradient-to-b from-brand-bg via-brand-bg to-white py-10 lg:py-16 overflow-hidden select-none relative">
+        <section className="w-full bg-gradient-to-b from-brand-bg via-brand-bg to-white py-2 lg:py-4 overflow-hidden select-none relative">
             <div
                 className="relative w-full overflow-hidden"
                 onMouseEnter={() => setIsPaused(true)}
@@ -115,7 +115,7 @@ export default function TechStackMarquee() {
                 <div className="absolute right-0 top-0 bottom-0 w-32 z-20 bg-gradient-to-l from-brand-bg to-transparent pointer-events-none" />
 
                 <motion.div
-                    className="flex whitespace-nowrap gap-12 lg:gap-20 items-center px-4 py-8"
+                    className="flex whitespace-nowrap gap-12 lg:gap-20 items-center px-4 py-3"
                     animate={isReducedMotion ? {} : { x: ["0%", "-50%"] }}
                     transition={isReducedMotion ? {} : {
                         x: {
