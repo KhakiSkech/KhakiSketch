@@ -97,12 +97,12 @@ export default function Header() {
     <>
       <header className={`w-full border-b border-gray-100 sticky top-0 z-50 transition-all duration-300 ${isScrolled || isMenuOpen ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-brand-bg/90 backdrop-blur-md'}`}>
         <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link href="/" className="flex flex-col group cursor-pointer" onClick={() => setIsMenuOpen(false)}>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-brand-secondary group-hover:scale-110 transition-transform"></span>
+          <Link href="/" className="flex items-center gap-2.5 group cursor-pointer" onClick={() => setIsMenuOpen(false)}>
+            <img src="/logo.png" alt="KhakiSketch" className="w-8 h-8 object-contain group-hover:scale-105 transition-transform" />
+            <div className="flex flex-col">
               <span className="font-bold text-brand-primary text-xl tracking-tight">KhakiSketch</span>
+              <span className="text-[10px] text-brand-muted font-medium tracking-wide hidden sm:block group-hover:text-brand-primary transition-colors">Web · Data · Automation Studio</span>
             </div>
-            <span className="text-[10px] text-brand-muted font-medium tracking-wide ml-5 hidden sm:block group-hover:text-brand-primary transition-colors">Web · Data · Automation Studio</span>
           </Link>
 
           {/* Desktop Nav */}
