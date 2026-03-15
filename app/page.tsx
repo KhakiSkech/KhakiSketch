@@ -39,17 +39,8 @@ const Contact = dynamic(() => import("@/components/Contact"), {
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
-      {/* 1. Hook — 문제 제기 */}
+      {/* 1. Hook — 문제 제기 + TechStack (하나의 흐름) */}
       <Hero />
-      <div className="w-full bg-brand-bg pt-1 pb-0">
-        <div className="flex items-center justify-center gap-4 opacity-50">
-          <span className="w-8 h-px bg-brand-primary" />
-          <span className="text-xs font-bold text-brand-primary tracking-[0.2em] uppercase">
-            Trusted Technologies & Modern Stacks
-          </span>
-          <span className="w-8 h-px bg-brand-primary" />
-        </div>
-      </div>
       <TechStackMarqueeClient />
 
       {/* 2. Problem → Solution */}

@@ -267,6 +267,17 @@ export default function Hero() {
         </div>
       </motion.div>
 
+      {/* Trusted Technologies label */}
+      <div className="w-full mt-4">
+        <div className="flex items-center justify-center gap-4 opacity-50">
+          <span className="w-8 h-px bg-brand-primary" />
+          <span className="text-xs font-bold text-brand-primary tracking-[0.2em] uppercase">
+            Trusted Technologies & Modern Stacks
+          </span>
+          <span className="w-8 h-px bg-brand-primary" />
+        </div>
+      </div>
+
       {/* Scroll Indicator */}
       <motion.div
         className="absolute bottom-10 left-1/2 -translate-x-1/2 hidden lg:block cursor-pointer"
