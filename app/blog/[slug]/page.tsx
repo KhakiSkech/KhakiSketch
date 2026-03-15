@@ -25,6 +25,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!article) {
     return {
       title: '글을 찾을 수 없습니다',
+      description: '요청하신 글을 찾을 수 없습니다.',
+      robots: { index: false, follow: false },
     };
   }
 
@@ -34,13 +36,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: `${article.title} | KhakiSketch Blog`,
       description: article.description,
-      images: [{ url: '/opengraph-image.webp', width: 1200, height: 630 }],
+      images: article.coverImage
+        ? [{ url: article.coverImage, width: 1200, height: 630 }]
+        : [{ url: '/opengraph-image.webp', width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${article.title} | KhakiSketch Blog`,
       description: article.description,
-      images: ['/opengraph-image.webp'],
+      images: article.coverImage ? [article.coverImage] : ['/opengraph-image.webp'],
     },
     alternates: {
       canonical: `https://khakisketch.co.kr/blog/${slug}`,

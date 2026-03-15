@@ -31,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 정적 페이지 URL 생성
   const staticUrls: MetadataRoute.Sitemap = staticPages.map((path) => ({
     url: `${baseUrl}${path}`,
-    lastModified: new Date(),
+    lastModified: new Date('2026-03-15'),
     changeFrequency: (path === '' ? 'daily' : 'weekly') as 'daily' | 'weekly',
     priority: path === '' ? 1 : 0.8,
   }));

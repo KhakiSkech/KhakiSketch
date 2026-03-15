@@ -5,9 +5,9 @@ export default function JsonLd() {
     name: '카키스케치 KhakiSketch',
     alternateName: ['KhakiSketch', '카키스케치', '케이에스아이', 'KSI', '주식회사 케이에스아이'],
     url: 'https://khakisketch.co.kr',
-    logo: 'https://khakisketch.co.kr/icon',
+    logo: 'https://khakisketch.co.kr/logo.png',
     description: '카키스케치(KhakiSketch, 주식회사 케이에스아이 KSI)는 스타트업 MVP 개발, 개발외주, SI, 비즈니스 자동화를 전문으로 하는 기술 스튜디오입니다. 예비창업패키지·초기창업패키지·청년창업사관학교 지원사업 개발 경험을 보유하고 있습니다.',
-    foundingDate: '2024',
+    foundingDate: '2024-01-01',
     founders: [
       {
         '@type': 'Person',
@@ -17,6 +17,10 @@ export default function JsonLd() {
     ],
     address: {
       '@type': 'PostalAddress',
+      streetAddress: '용암북로 160번길 20(대화프라자), 202호',
+      addressLocality: '청주시 상당구',
+      addressRegion: '충청북도',
+      postalCode: '28590',
       addressCountry: 'KR',
     },
     sameAs: [
@@ -74,6 +78,25 @@ export default function JsonLd() {
         },
       ],
     },
+  };
+
+  const localBusinessSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    '@id': 'https://khakisketch.co.kr/#local-business',
+    name: '카키스케치',
+    image: 'https://khakisketch.co.kr/logo.png',
+    telephone: '043-288-4860',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '용암북로 160번길 20(대화프라자), 202호',
+      addressLocality: '청주시 상당구',
+      addressRegion: '충청북도',
+      postalCode: '28590',
+      addressCountry: 'KR',
+    },
+    openingHours: 'Mo-Fr 10:00-18:00',
+    priceRange: '$$',
   };
 
   const websiteSchema = {
@@ -216,6 +239,10 @@ export default function JsonLd() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
       />
       <script
         type="application/ld+json"

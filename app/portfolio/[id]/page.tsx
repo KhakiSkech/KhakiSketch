@@ -29,6 +29,8 @@ export async function generateMetadata({
     if (!project) {
         return {
             title: '프로젝트를 찾을 수 없습니다',
+            description: '요청하신 프로젝트를 찾을 수 없습니다.',
+            robots: { index: false, follow: false },
         };
     }
 

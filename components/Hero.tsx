@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, useSpring, useMotionValue, useTransform, useScroll } from 'framer-motion';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ANIMATION } from '@/lib/animation-config';
-import HeroGeometric from './ui/HeroGeometric';
+import HeroLaptops from './ui/HeroLaptops';
 
 import TypeWriter from './ui/TypeWriter';
 
@@ -285,14 +285,14 @@ export default function Hero() {
             </motion.div>
           </motion.div>
 
-          {/* Right: Geometric visual (desktop only) */}
+          {/* Right: Laptop visual (desktop only) */}
           <motion.div
-            className="hidden lg:block relative"
+            className="hidden lg:flex items-center justify-center relative"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, delay: 0.5, ease: ANIMATION.easing }}
           >
-            <HeroGeometric smoothX={smoothX} smoothY={smoothY} />
+            <HeroLaptops />
           </motion.div>
         </div>
       </motion.div>

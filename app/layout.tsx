@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     default: "카키스케치 KhakiSketch | 스타트업 MVP 개발 · 개발외주 · SI",
     template: "%s | 카키스케치 KhakiSketch",
   },
-  description: "카키스케치(KhakiSketch)는 스타트업 MVP 개발, 개발외주, SI, 비즈니스 자동화를 전문으로 하는 기술 스튜디오입니다. 주식회사 케이에스아이(KSI)가 운영하며, 예비창업패키지·초기창업패키지·청년창업사관학교 지원사업 개발 경험을 보유하고 있습니다. 3~4개월 내 실제 작동하는 웹/앱 제품을 만들어 드립니다.",
+  description: "카키스케치는 스타트업 MVP, 업무 자동화, 기업 홈페이지를 전문으로 하는 개발 스튜디오입니다. 컴공 전공 개발자 2인이 재하청 없이 직접 개발합니다.",
   keywords: ["카키스케치", "KhakiSketch", "khakisketch", "KSI", "케이에스아이", "주식회사 케이에스아이", "개발외주", "개발팀", "SI", "시스템통합", "SW 개발", "소프트웨어 개발", "트레이딩 개발", "퀀트 개발", "MVP 개발", "스타트업 개발", "예비창업패키지", "초기창업패키지", "청년창업사관학교", "창업지원", "React", "Next.js", "Python", "FastAPI", "업무 자동화", "맞춤 시스템", "웹 개발", "앱 개발", "Flutter", "기업 홈페이지", "솔루션 개발", "데이터 파이프라인", "API 개발", "백엔드 개발", "프론트엔드 개발"],
   authors: [{ name: "KhakiSketch" }],
   creator: "KhakiSketch",
