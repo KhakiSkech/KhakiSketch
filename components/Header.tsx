@@ -99,10 +99,7 @@ export default function Header() {
         <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group cursor-pointer" onClick={() => setIsMenuOpen(false)}>
             <img src="/logo.png" alt="KhakiSketch" width={32} height={32} className="w-8 h-8 object-contain group-hover:scale-105 transition-transform" />
-            <div className="flex flex-col">
-              <span className="font-bold text-brand-primary text-xl tracking-tight">KhakiSketch</span>
-              <span className="text-[10px] text-brand-muted font-medium tracking-wide hidden sm:block group-hover:text-brand-primary transition-colors">Web · Data · Automation Studio</span>
-            </div>
+            <span className="font-bold text-brand-primary text-xl tracking-tight">KhakiSketch</span>
           </Link>
 
           {/* Desktop Nav */}
