@@ -255,7 +255,7 @@ export default function Hero() {
             {/* Key Stats */}
             <motion.div
               variants={itemVariants}
-              className="flex items-center gap-6 lg:gap-8 mt-4 pt-4 border-t border-gray-200/60"
+              className="flex items-center gap-6 lg:gap-8 mt-4 pt-3 border-t border-gray-200/60"
             >
               <div className="text-center">
                 <span className="block text-2xl lg:text-3xl font-bold text-brand-primary">47+</span>
@@ -273,16 +273,7 @@ export default function Hero() {
               </div>
             </motion.div>
 
-            {/* Trusted By Heading */}
-            <motion.div
-              variants={itemVariants}
-              className="flex items-center gap-4 mt-6 opacity-40 group hover:opacity-100 transition-opacity duration-500"
-            >
-              <span className="w-8 h-px bg-brand-primary" />
-              <span className="text-xs lg:text-sm font-bold text-brand-primary tracking-[0.2em] uppercase whitespace-nowrap">
-                Trusted Technologies & Modern Stacks
-              </span>
-            </motion.div>
+{/* Trusted By — moved above TechStack marquee */}
           </motion.div>
 
           {/* Right: Laptop visual (desktop only) */}
