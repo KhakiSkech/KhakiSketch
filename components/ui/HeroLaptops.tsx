@@ -50,12 +50,12 @@ function Laptop({ imageUrl, imageAlt, isFront, isSwapped, onClick, prefersReduce
   // Position: front is bottom-right, back is top-left
   // After swap: they exchange positions
   const frontStyle: React.CSSProperties = isSwapped
-    ? { left: 0, top: 0, width: 460, zIndex: 1 }
-    : { right: 0, bottom: 0, width: 460, zIndex: 2 };
+    ? { left: 0, top: 0, width: 400, zIndex: 1 }
+    : { right: 0, bottom: 0, width: 400, zIndex: 2 };
 
   const backStyle: React.CSSProperties = isSwapped
-    ? { right: 0, bottom: 0, width: 460, zIndex: 2 }
-    : { left: 0, top: 0, width: 460, zIndex: 1 };
+    ? { right: 0, bottom: 0, width: 400, zIndex: 2 }
+    : { left: 0, top: 0, width: 400, zIndex: 1 };
 
   const positionStyle = isFront ? frontStyle : backStyle;
 
@@ -168,7 +168,7 @@ export default function HeroLaptops({
 
   return (
     <div className="relative flex items-center justify-center">
-      <div className="relative" style={{ width: 560, height: 400 }}>
+      <div className="relative" style={{ width: 520, height: 380 }}>
         <AnimatePresence mode="sync">
           {/* Back laptop */}
           <Laptop
@@ -227,7 +227,7 @@ export default function HeroLaptops({
 
         {/* Click hint */}
         <motion.p
-          className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-xs text-brand-muted/60 whitespace-nowrap select-none"
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-xs text-brand-muted/60 whitespace-nowrap select-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5, duration: 0.5 }}

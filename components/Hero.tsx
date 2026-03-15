@@ -112,7 +112,7 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full min-h-screen flex flex-col justify-center bg-brand-bg overflow-hidden pt-32 pb-20"
+      className="relative w-full flex flex-col justify-center bg-brand-bg overflow-hidden pt-24 pb-8 lg:pt-20 lg:pb-8"
       aria-label="메인 배너"
     >
       {/* 1. Background Dot Pattern */}
@@ -209,7 +209,7 @@ export default function Hero() {
 
             {/* Main Headline with TypeWriter */}
             <motion.h1 className="flex flex-col gap-3" variants={itemVariants}>
-              <span className="font-bold text-brand-primary text-4xl md:text-5xl lg:text-6xl leading-[1.15] tracking-[-0.02em] break-keep">
+              <span className="font-bold text-brand-primary text-4xl md:text-5xl lg:text-[3.2rem] leading-[1.15] tracking-[-0.02em] break-keep">
                 아이디어는 있는데,<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">
                   <TypeWriter text="어디서부터 시작할지" delay={1000} />
@@ -218,7 +218,7 @@ export default function Hero() {
             </motion.h1>
 
             {/* Subheadline */}
-            <motion.p className="font-medium text-brand-primary/80 text-xl md:text-2xl leading-relaxed break-keep" variants={itemVariants}>
+            <motion.p className="font-medium text-brand-primary/80 text-lg md:text-xl leading-relaxed break-keep" variants={itemVariants}>
               3~4개월이면 실제 돌아가는 제품이 나옵니다.<br className="hidden sm:block" />
               재하청 없이, 대표 개발자가 직접.
             </motion.p>
@@ -230,7 +230,7 @@ export default function Hero() {
             </motion.p>
 
             {/* CTA Button */}
-            <motion.div className="flex flex-col sm:flex-row gap-4 pt-2 items-start sm:items-center mb-12" variants={itemVariants}>
+            <motion.div className="flex flex-col sm:flex-row gap-4 pt-2 items-start sm:items-center mb-6" variants={itemVariants}>
               <a
                 href="/quote"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-brand-primary text-white font-bold text-lg shadow-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-xl group"
@@ -255,7 +255,7 @@ export default function Hero() {
             {/* Key Stats */}
             <motion.div
               variants={itemVariants}
-              className="flex items-center gap-6 lg:gap-8 mt-8 pt-6 border-t border-gray-200/60"
+              className="flex items-center gap-6 lg:gap-8 mt-4 pt-4 border-t border-gray-200/60"
             >
               <div className="text-center">
                 <span className="block text-2xl lg:text-3xl font-bold text-brand-primary">47+</span>
