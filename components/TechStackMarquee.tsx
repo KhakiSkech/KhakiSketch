@@ -103,7 +103,7 @@ export default function TechStackMarquee() {
     const [isPaused, setIsPaused] = useState(false);
 
     return (
-        <section className="w-full py-2 lg:py-3 overflow-hidden select-none relative">
+        <div className="w-full py-2 lg:py-3 overflow-hidden select-none relative">
             <div
                 className="relative w-full overflow-hidden"
                 onMouseEnter={() => setIsPaused(true)}
@@ -133,6 +133,6 @@ export default function TechStackMarquee() {
                     ))}
                 </motion.div>
             </div>
-        </section>
+        </div>
     );
 }
