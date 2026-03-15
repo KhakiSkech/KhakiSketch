@@ -114,7 +114,7 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full min-h-screen flex flex-col justify-between bg-brand-bg overflow-hidden pt-24 pb-0 lg:pt-20 lg:pb-0"
+      className="relative w-full h-[100svh] flex flex-col justify-between bg-brand-bg overflow-x-hidden pt-24 pb-0 lg:pt-20 lg:pb-0"
       aria-label="메인 배너"
     >
       {/* 1. Background Dot Pattern */}
