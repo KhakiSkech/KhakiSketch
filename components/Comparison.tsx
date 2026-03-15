@@ -139,7 +139,7 @@ function ComparisonMobile() {
 function ComparisonDesktop() {
   return (
     <div className="hidden lg:block motion-reduce:!hidden relative">
-      <StickyScrollSection scrollHeight={1.2} bgColor="bg-[#1a2618]">
+      <StickyScrollSection scrollHeight={1.0} bgColor="bg-[#1a2618]">
         {(scrollYProgress) => <DesktopContent scrollYProgress={scrollYProgress} />}
       </StickyScrollSection>
     </div>
