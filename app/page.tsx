@@ -6,7 +6,6 @@ import Process from "@/components/Process";
 import Comparison from "@/components/Comparison";
 import Stats from "@/components/Stats";
 import Testimonials from "@/components/Testimonials";
-import TechStackMarqueeClient from "@/components/TechStackMarqueeClient";
 import MidCta from "@/components/MidCta";
 
 // Lazy load below-fold components for better initial load performance
@@ -39,9 +38,8 @@ const Contact = dynamic(() => import("@/components/Contact"), {
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
-      {/* 1. Hook — 문제 제기 + TechStack (하나의 흐름) */}
+      {/* 1. Hook — Hero + TechStack 통합 */}
       <Hero />
-      <TechStackMarqueeClient />
 
       {/* 2. Problem → Solution */}
       <Comparison />

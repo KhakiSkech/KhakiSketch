@@ -103,7 +103,7 @@ export default function TechStackMarquee() {
     const [isPaused, setIsPaused] = useState(false);
 
     return (
-        <section className="w-full bg-gradient-to-b from-brand-bg via-brand-bg to-white py-2 lg:py-4 overflow-hidden select-none relative">
+        <section className="w-full py-2 lg:py-3 overflow-hidden select-none relative">
             <div
                 className="relative w-full overflow-hidden"
                 onMouseEnter={() => setIsPaused(true)}

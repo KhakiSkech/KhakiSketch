@@ -5,8 +5,10 @@ import { motion, useSpring, useMotionValue, useTransform, useScroll } from 'fram
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ANIMATION } from '@/lib/animation-config';
 import HeroLaptops from './ui/HeroLaptops';
-
+import dynamic from 'next/dynamic';
 import TypeWriter from './ui/TypeWriter';
+
+const TechStackMarquee = dynamic(() => import('@/components/TechStackMarquee'), { ssr: false });
 
 // Framer Motion variants for text content (module-level to avoid re-creation)
 const containerVariants = {
@@ -112,7 +114,7 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full flex flex-col justify-center bg-brand-bg overflow-hidden pt-24 pb-8 lg:pt-20 lg:pb-8"
+      className="relative w-full min-h-screen flex flex-col justify-between bg-brand-bg overflow-hidden pt-24 pb-0 lg:pt-20 lg:pb-0"
       aria-label="메인 배너"
     >
       {/* 1. Background Dot Pattern */}
@@ -267,15 +269,16 @@ export default function Hero() {
         </div>
       </motion.div>
 
-      {/* Trusted Technologies label */}
-      <div className="w-full mt-4">
-        <div className="flex items-center justify-center gap-4 opacity-50">
+      {/* Bottom: Trusted Technologies + TechStack Marquee */}
+      <div className="w-full mt-auto">
+        <div className="flex items-center justify-center gap-4 opacity-50 mb-1">
           <span className="w-8 h-px bg-brand-primary" />
           <span className="text-xs font-bold text-brand-primary tracking-[0.2em] uppercase">
             Trusted Technologies & Modern Stacks
           </span>
           <span className="w-8 h-px bg-brand-primary" />
         </div>
+        <TechStackMarquee />
       </div>
 
       {/* Scroll Indicator */}
