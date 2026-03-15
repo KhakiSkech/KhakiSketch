@@ -179,7 +179,7 @@ export default function Hero() {
       />
 
       <motion.div
-        className="w-full max-w-7xl mx-auto px-6 lg:px-8 relative z-10"
+        className="w-full max-w-7xl mx-auto px-6 lg:px-8 relative z-10 flex-1 min-h-0 flex flex-col justify-center"
         style={{ opacity: contentOpacity, y: contentY }}
       >
         {/* 2-column layout: text left, geometric right */}
@@ -270,7 +270,7 @@ export default function Hero() {
       </motion.div>
 
       {/* Bottom: Trusted Technologies + TechStack Marquee */}
-      <div className="w-full mt-auto">
+      <div className="w-full shrink-0">
         <div className="flex items-center justify-center gap-4 opacity-50 mb-1">
           <span className="w-8 h-px bg-brand-primary" />
           <span className="text-xs font-bold text-brand-primary tracking-[0.2em] uppercase">
