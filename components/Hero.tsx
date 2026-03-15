@@ -252,28 +252,7 @@ export default function Hero() {
               </div>
             </motion.div>
 
-            {/* Key Stats */}
-            <motion.div
-              variants={itemVariants}
-              className="flex items-center gap-6 lg:gap-8 mt-4 pt-3 border-t border-gray-200/60"
-            >
-              <div className="text-center">
-                <span className="block text-2xl lg:text-3xl font-bold text-brand-primary">47+</span>
-                <span className="text-xs text-brand-muted">완료 프로젝트</span>
-              </div>
-              <div className="w-px h-8 bg-gray-200" />
-              <div className="text-center">
-                <span className="block text-2xl lg:text-3xl font-bold text-brand-primary">3.2<span className="text-base">개월</span></span>
-                <span className="text-xs text-brand-muted">평균 납기</span>
-              </div>
-              <div className="w-px h-8 bg-gray-200" />
-              <div className="text-center">
-                <span className="block text-2xl lg:text-3xl font-bold text-brand-secondary">98%</span>
-                <span className="text-xs text-brand-muted">고객 만족도</span>
-              </div>
-            </motion.div>
-
-{/* Trusted By — moved above TechStack marquee */}
+{/* Stats moved to Stats section, Trusted By moved above TechStack marquee */}
           </motion.div>
 
           {/* Right: Laptop visual (desktop only) */}
