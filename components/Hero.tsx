@@ -5,10 +5,8 @@ import { motion, useSpring, useMotionValue, useTransform, useScroll } from 'fram
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ANIMATION } from '@/lib/animation-config';
 import HeroLaptops from './ui/HeroLaptops';
-import dynamic from 'next/dynamic';
+import TechStackMarquee from '@/components/TechStackMarquee';
 import TypeWriter from './ui/TypeWriter';
-
-const TechStackMarquee = dynamic(() => import('@/components/TechStackMarquee'), { ssr: false });
 
 // Framer Motion variants for text content (module-level to avoid re-creation)
 const containerVariants = {
