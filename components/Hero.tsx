@@ -112,7 +112,7 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full h-[100svh] flex flex-col justify-between bg-brand-bg overflow-x-hidden pt-24 pb-0 lg:pt-20 lg:pb-0"
+      className="relative w-full lg:h-[calc(100svh-80px)] flex flex-col justify-between bg-brand-bg overflow-x-hidden pt-6 pb-4 lg:pt-6 lg:pb-0"
       aria-label="메인 배너"
     >
       {/* 1. Background Dot Pattern */}
@@ -184,7 +184,7 @@ export default function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-4 items-center">
           {/* Left: Text content */}
           <motion.div
-            className="flex flex-col gap-10"
+            className="flex flex-col gap-4 lg:gap-5"
             initial="hidden"
             animate="visible"
             variants={containerVariants}
