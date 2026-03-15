@@ -24,12 +24,12 @@ const goodPoints = [
    Mobile — 일반 스크롤 + whileInView
    ──────────────────────────────────────────── */
 const fadeUp = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } };
-const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
-const listItem = { hidden: { opacity: 0, x: -10 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3 } } };
+const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
+const listItem = { hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0, transition: { duration: 0.4 } } };
 
 function ComparisonMobile() {
   return (
-    <div className="lg:hidden motion-reduce:lg:!block relative py-14 overflow-hidden">
+    <div className="relative py-14 overflow-hidden">
       <DarkMeshBackground />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
@@ -57,11 +57,11 @@ function ComparisonMobile() {
           </p>
         </motion.div>
 
-        {/* Cards */}
-        <div className="flex flex-col gap-6">
+        {/* Cards — 모바일: 세로, 데스크톱: 가로 */}
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Bad */}
           <motion.div
-            className="flex flex-col p-7 rounded-2xl border border-white/10 bg-white/[0.08]"
+            className="flex flex-col p-7 rounded-2xl border border-white/10 bg-white/[0.08] lg:flex-1"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-40px' }}
@@ -88,7 +88,7 @@ function ComparisonMobile() {
 
           {/* Good */}
           <motion.div
-            className="flex flex-col p-7 rounded-2xl border border-brand-secondary/40 bg-brand-secondary/15 text-white shadow-xl overflow-hidden relative"
+            className="flex flex-col p-7 rounded-2xl border border-brand-secondary/40 bg-brand-secondary/15 text-white shadow-xl overflow-hidden relative lg:flex-1"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-40px' }}
@@ -300,7 +300,6 @@ function DesktopContent({ scrollYProgress }: { scrollYProgress: MotionValue<numb
 export default function Comparison() {
   return (
     <section id="comparison" className="w-full" aria-label="카키스케치와 일반 에이전시 비교">
-      <ComparisonDesktop />
       <ComparisonMobile />
     </section>
   );
