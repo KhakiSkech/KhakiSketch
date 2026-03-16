@@ -82,11 +82,15 @@ export default function JsonLd() {
 
   const localBusinessSchema = {
     '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
+    '@type': 'ProfessionalService',
     '@id': 'https://khakisketch.co.kr/#local-business',
-    name: '카키스케치',
+    name: '카키스케치 KhakiSketch',
+    alternateName: ['주식회사 케이에스아이', 'KSI', '청주 개발업체', '충북 SW 개발'],
     image: 'https://khakisketch.co.kr/logo.png',
+    url: 'https://khakisketch.co.kr',
     telephone: '043-288-4860',
+    email: 'songjc6561@gmail.com',
+    description: '충청북도 청주시 소재 SW 개발 스튜디오. 스타트업 MVP 개발, 업무 자동화, 기업 홈페이지 제작 전문. 예비창업패키지·초기창업패키지 수행 경험.',
     address: {
       '@type': 'PostalAddress',
       streetAddress: '용암북로 160번길 20(대화프라자), 202호',
@@ -95,8 +99,25 @@ export default function JsonLd() {
       postalCode: '28590',
       addressCountry: 'KR',
     },
-    openingHours: 'Mo-Fr 10:00-18:00',
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 36.6358,
+      longitude: 127.4914,
+    },
+    openingHoursSpecification: {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '10:00',
+      closes: '18:00',
+    },
     priceRange: '$$',
+    paymentAccepted: '계좌이체, 세금계산서',
+    areaServed: [
+      { '@type': 'Country', name: 'KR' },
+      { '@type': 'City', name: '청주시' },
+      { '@type': 'State', name: '충청북도' },
+    ],
+    knowsAbout: ['스타트업 MVP 개발', '개발외주', '업무 자동화', '기업 홈페이지', 'SI', '트레이딩 개발'],
   };
 
   const websiteSchema = {
