@@ -10,30 +10,34 @@ export const dynamic = 'force-static';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://khakisketch.co.kr';
   
-  // 정적 페이지들
-  const staticPages = [
-    '',
-    '/about',
-    '/portfolio',
-    '/blog',
-    '/pricing',
-    '/process',
-    '/quote',
-    '/contact',
-    '/services/startup-mvp',
-    '/services/corporate-website',
-    '/services/business-automation',
-    '/brochure',
-    '/privacy',
-    '/terms',
+  // 정적 페이지 — 비즈니스 중요도 기반 priority 설정
+  const staticPages: { path: string; priority: number; changeFrequency: 'daily' | 'weekly' | 'monthly' }[] = [
+    // 핵심 전환 페이지
+    { path: '', priority: 1.0, changeFrequency: 'daily' },
+    { path: '/quote', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/pricing', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/contact', priority: 0.9, changeFrequency: 'monthly' },
+    // 서비스 페이지 (매출 직결)
+    { path: '/services/startup-mvp', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/services/business-automation', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/services/corporate-website', priority: 0.9, changeFrequency: 'monthly' },
+    // 신뢰 구축 페이지
+    { path: '/portfolio', priority: 0.8, changeFrequency: 'weekly' },
+    { path: '/blog', priority: 0.8, changeFrequency: 'weekly' },
+    { path: '/process', priority: 0.7, changeFrequency: 'monthly' },
+    { path: '/about', priority: 0.7, changeFrequency: 'monthly' },
+    { path: '/brochure', priority: 0.6, changeFrequency: 'monthly' },
+    // 법적 페이지
+    { path: '/privacy', priority: 0.3, changeFrequency: 'monthly' },
+    { path: '/terms', priority: 0.3, changeFrequency: 'monthly' },
   ];
-  
+
   // 정적 페이지 URL 생성
-  const staticUrls: MetadataRoute.Sitemap = staticPages.map((path) => ({
-    url: `${baseUrl}${path}`,
-    lastModified: new Date('2026-03-15'),
-    changeFrequency: (path === '' ? 'daily' : 'weekly') as 'daily' | 'weekly',
-    priority: path === '' ? 1 : 0.8,
+  const staticUrls: MetadataRoute.Sitemap = staticPages.map((page) => ({
+    url: `${baseUrl}${page.path}`,
+    lastModified: new Date('2026-03-16'),
+    changeFrequency: page.changeFrequency,
+    priority: page.priority,
   }));
   
   // 블로그 글 URL 생성
