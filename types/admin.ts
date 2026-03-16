@@ -164,12 +164,19 @@ export interface SitePricing {
   plans: PricingPlan[];
 }
 
+// Hero Images (히어로 이미지)
+export interface SiteHeroImages {
+  imageBack: string;
+  imageFront: string;
+}
+
 // 통합 사이트 설정
 export interface SiteSettings {
   stats?: SiteStats;
   faq?: SiteFAQ;
   testimonials?: SiteTestimonials;
   pricing?: SitePricing;
+  hero?: SiteHeroImages;
 }
 
 // ===== Form Types =====

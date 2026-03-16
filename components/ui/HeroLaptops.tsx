@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ANIMATION } from '@/lib/animation-config';
+import { getHeroImages } from '@/lib/firestore-site-settings';
 
 const DEFAULT_IMAGE_BACK = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80';
 const DEFAULT_IMAGE_FRONT = 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80';
@@ -158,11 +159,22 @@ function Laptop({ imageUrl, imageAlt, isFront, isSwapped, onClick, prefersReduce
 }
 
 export default function HeroLaptops({
-  imageBack = DEFAULT_IMAGE_BACK,
-  imageFront = DEFAULT_IMAGE_FRONT,
+  imageBack: imageBackProp = DEFAULT_IMAGE_BACK,
+  imageFront: imageFrontProp = DEFAULT_IMAGE_FRONT,
 }: HeroLaptopsProps) {
   const prefersReducedMotion = useReducedMotion();
   const [swapped, setSwapped] = useState(false);
+  const [imageBack, setImageBack] = useState(imageBackProp);
+  const [imageFront, setImageFront] = useState(imageFrontProp);
+
+  useEffect(() => {
+    getHeroImages().then((data) => {
+      if (data) {
+        if (data.imageBack) setImageBack(data.imageBack);
+        if (data.imageFront) setImageFront(data.imageFront);
+      }
+    });
+  }, []);
 
   const handleSwap = () => setSwapped((prev) => !prev);
 

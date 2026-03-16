@@ -5,8 +5,9 @@ import StatsEditor from '@/components/admin/StatsEditor';
 import FAQEditor from '@/components/admin/FAQEditor';
 import TestimonialsEditor from '@/components/admin/TestimonialsEditor';
 import PricingEditor from '@/components/admin/PricingEditor';
+import HeroImagesEditor from '@/components/admin/HeroImagesEditor';
 
-type TabKey = 'stats' | 'faq' | 'testimonials' | 'pricing';
+type TabKey = 'stats' | 'faq' | 'testimonials' | 'pricing' | 'hero';
 
 interface Tab {
   key: TabKey;
@@ -71,6 +72,20 @@ const TABS: Tab[] = [
       </svg>
     ),
   },
+  {
+    key: 'hero',
+    label: 'Hero 이미지',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+        />
+      </svg>
+    ),
+  },
 ];
 
 export default function SiteSettingsPage(): React.ReactElement {
@@ -86,6 +101,8 @@ export default function SiteSettingsPage(): React.ReactElement {
         return <TestimonialsEditor />;
       case 'pricing':
         return <PricingEditor />;
+      case 'hero':
+        return <HeroImagesEditor />;
       default:
         return <StatsEditor />;
     }

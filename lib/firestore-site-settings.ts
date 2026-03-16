@@ -8,6 +8,7 @@ import type {
   SiteFAQ,
   SiteTestimonials,
   SitePricing,
+  SiteHeroImages,
   FAQItem,
   TestimonialItem,
   PricingPlan,
@@ -21,6 +22,7 @@ const STATS_DOC = 'stats';
 const FAQ_DOC = 'faq';
 const TESTIMONIALS_DOC = 'testimonials';
 const PRICING_DOC = 'pricing';
+const HERO_DOC = 'hero';
 
 // ===== Stats =====
 
@@ -296,4 +298,44 @@ export async function savePricing(
 
 export function generatePricingId(): string {
   return `pricing-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+// ===== Hero Images =====
+
+export async function getHeroImages(): Promise<SiteHeroImages | null> {
+  try {
+    const db = getFirebaseFirestore();
+    const docRef = doc(db, SITE_SETTINGS_COLLECTION, HERO_DOC);
+    const docSnap = await withTimeout(getDoc(docRef), 5000);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.imageBack && data.imageFront) {
+        return { imageBack: data.imageBack, imageFront: data.imageFront };
+      }
+    }
+  } catch (error) {
+    logger.warn('Hero images 조회 실패:', error);
+  }
+  return null;
+}
+
+export async function saveHeroImages(
+  heroImages: SiteHeroImages
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const db = getFirebaseFirestore();
+    const docRef = doc(db, SITE_SETTINGS_COLLECTION, HERO_DOC);
+    await setDoc(docRef, {
+      ...heroImages,
+      updatedAt: new Date().toISOString(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.error('Hero images 저장 실패:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '저장에 실패했습니다.',
+    };
+  }
 }
