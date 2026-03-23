@@ -13,7 +13,7 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   {
-    label: 'Dashboard',
+    label: '대시보드',
     href: '/admin',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,7 +31,7 @@ const navigation: NavItem[] = [
     ),
     children: [
       {
-        label: 'Portfolio',
+        label: '포트폴리오',
         href: '/admin/portfolio',
         icon: (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +40,7 @@ const navigation: NavItem[] = [
         ),
       },
       {
-        label: 'Blog',
+        label: '블로그',
         href: '/admin/blog',
         icon: (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +61,7 @@ const navigation: NavItem[] = [
     ),
     children: [
       {
-        label: 'Quotes',
+        label: '견적 관리',
         href: '/admin/quotes',
         icon: (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +70,7 @@ const navigation: NavItem[] = [
         ),
       },
       {
-        label: 'Analytics',
+        label: '분석',
         href: '/admin/analytics',
         icon: (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,6 +126,15 @@ const navigation: NavItem[] = [
         ),
       },
       {
+        label: '메시지 관리',
+        href: '/admin/billing/messages',
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        ),
+      },
+      {
         label: '과금 설정',
         href: '/admin/billing/settings',
         icon: (
@@ -148,7 +157,7 @@ const navigation: NavItem[] = [
     ),
     children: [
       {
-        label: 'Site Settings',
+        label: '사이트 설정',
         href: '/admin/site-settings',
         icon: (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,7 +166,7 @@ const navigation: NavItem[] = [
         ),
       },
       {
-        label: 'Admin Settings',
+        label: '관리자 설정',
         href: '/admin/settings',
         icon: (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

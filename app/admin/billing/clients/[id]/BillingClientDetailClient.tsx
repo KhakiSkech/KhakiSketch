@@ -19,6 +19,8 @@ import type {
   BillingInvoice,
   InvoiceStatus,
 } from '@/types/billing';
+import Toast from '@/components/ui/Toast';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 type Tab = 'info' | 'projects' | 'invoices';
 
@@ -88,6 +90,21 @@ export default function BillingClientDetailClient({ id }: BillingClientDetailCli
   // Action loading
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  // Message modal state
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [messageResult, setMessageResult] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Toast & confirm state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+
   useEffect(() => {
     loadData();
   }, [id]);
@@ -129,25 +146,10 @@ export default function BillingClientDetailClient({ id }: BillingClientDetailCli
       setIsEditingInfo(false);
       await loadData();
     } else {
-      alert(result.error ?? '저장에 실패했습니다.');
+      setToast({ message: result.error ?? '저장에 실패했습니다.', type: 'error' });
     }
 
     setIsSavingInfo(false);
-  };
-
-  const handleRegisterCms = async () => {
-    if (!client) return;
-    setActionLoading('cms');
-    try {
-      const functions = getFunctions(getFirebaseAuth().app, 'asia-northeast3');
-      const registerCmsBilling = httpsCallable(functions, 'registerCmsBilling');
-      await registerCmsBilling({ clientId: id });
-      alert('CMS 등록 SMS가 발송되었습니다. 고객이 인증 후 빌링키가 등록됩니다.');
-    } catch (err) {
-      alert('CMS 등록 요청에 실패했습니다.');
-    } finally {
-      setActionLoading(null);
-    }
   };
 
   const handleCreateProject = async (e: React.FormEvent) => {
@@ -209,37 +211,71 @@ export default function BillingClientDetailClient({ id }: BillingClientDetailCli
     if (result.success) {
       await loadData();
     } else {
-      alert(result.error ?? '해지 처리에 실패했습니다.');
+      setToast({ message: result.error ?? '해지 처리에 실패했습니다.', type: 'error' });
     }
   };
 
-  const handleConfirmPayment = async (invoiceId: string) => {
-    if (!confirm('입금을 확인하시겠습니까?')) return;
-    setActionLoading(`confirm-${invoiceId}`);
-    try {
-      const functions = getFunctions(getFirebaseAuth().app, 'asia-northeast3');
-      const confirmPayment = httpsCallable(functions, 'confirmPayment');
-      await confirmPayment({ clientId: id, invoiceId });
-      await loadData();
-    } catch (err) {
-      alert('입금 확인 처리에 실패했습니다.');
-    } finally {
-      setActionLoading(null);
-    }
+  const handleConfirmPayment = (invoiceId: string) => {
+    setConfirmState({
+      isOpen: true,
+      title: '입금 확인',
+      message: '입금을 확인하시겠습니까?',
+      onConfirm: async () => {
+        setConfirmState((prev) => ({ ...prev, isOpen: false }));
+        setActionLoading(`confirm-${invoiceId}`);
+        try {
+          const functions = getFunctions(getFirebaseAuth().app, 'asia-northeast3');
+          const confirmPayment = httpsCallable(functions, 'confirmPayment');
+          await confirmPayment({ clientId: id, invoiceId });
+          await loadData();
+        } catch {
+          setToast({ message: '입금 확인 처리에 실패했습니다.', type: 'error' });
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
-  const handleWaiveInvoice = async (invoiceId: string) => {
-    if (!confirm('이 청구를 면제 처리하시겠습니까?')) return;
-    setActionLoading(`waive-${invoiceId}`);
+  const handleWaiveInvoice = (invoiceId: string) => {
+    setConfirmState({
+      isOpen: true,
+      title: '면제 처리',
+      message: '이 청구를 면제 처리하시겠습니까?',
+      onConfirm: async () => {
+        setConfirmState((prev) => ({ ...prev, isOpen: false }));
+        setActionLoading(`waive-${invoiceId}`);
+        try {
+          const functions = getFunctions(getFirebaseAuth().app, 'asia-northeast3');
+          const waiveInvoice = httpsCallable(functions, 'waiveInvoice');
+          await waiveInvoice({ clientId: id, invoiceId });
+          await loadData();
+        } catch {
+          setToast({ message: '면제 처리에 실패했습니다.', type: 'error' });
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageText.trim()) return;
+
+    setIsSendingMessage(true);
+    setMessageResult(null);
+
     try {
       const functions = getFunctions(getFirebaseAuth().app, 'asia-northeast3');
-      const waiveInvoice = httpsCallable(functions, 'waiveInvoice');
-      await waiveInvoice({ clientId: id, invoiceId });
-      await loadData();
+      const sendManualNotice = httpsCallable(functions, 'sendManualNotice');
+      await sendManualNotice({ clientId: id, message: messageText.trim() });
+      setMessageResult({ type: 'success', text: '메시지가 성공적으로 발송되었습니다.' });
+      setMessageText('');
     } catch (err) {
-      alert('면제 처리에 실패했습니다.');
+      setMessageResult({ type: 'error', text: '메시지 발송에 실패했습니다.' });
     } finally {
-      setActionLoading(null);
+      setIsSendingMessage(false);
     }
   };
 
@@ -281,6 +317,19 @@ export default function BillingClientDetailClient({ id }: BillingClientDetailCli
 
   return (
     <div className="space-y-6">
+      {/* 토스트 알림 */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* 확인 모달 */}
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        onClose={() => setConfirmState((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmState.onConfirm}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmLabel="확인"
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -296,11 +345,22 @@ export default function BillingClientDetailClient({ id }: BillingClientDetailCli
           <h1 className="text-2xl font-bold text-brand-primary mt-2">{client.companyName}</h1>
           <p className="text-brand-muted text-sm">{client.contactName} · {client.phone}</p>
         </div>
-        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium self-start ${
-          client.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-        }`}>
-          {client.status === 'active' ? '활성' : '비활성'}
-        </span>
+        <div className="flex items-center gap-3 self-start">
+          <button
+            onClick={() => { setShowMessageModal(true); setMessageResult(null); }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-brand-primary/10 text-brand-primary rounded-xl text-sm font-medium hover:bg-brand-primary/20 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            메시지 보내기
+          </button>
+          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
+            client.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+          }`}>
+            {client.status === 'active' ? '활성' : '비활성'}
+          </span>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -326,20 +386,6 @@ export default function BillingClientDetailClient({ id }: BillingClientDetailCli
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-brand-primary">고객 정보</h2>
             <div className="flex gap-2">
-              {!client.paypleBillingKey && (
-                <button
-                  onClick={handleRegisterCms}
-                  disabled={actionLoading === 'cms'}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  {actionLoading === 'cms' ? '처리 중...' : 'CMS 등록'}
-                </button>
-              )}
-              {client.paypleBillingKey && (
-                <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-xl text-sm font-medium">
-                  CMS 등록됨
-                </span>
-              )}
               {!isEditingInfo ? (
                 <button
                   onClick={() => setIsEditingInfo(true)}
@@ -564,6 +610,68 @@ export default function BillingClientDetailClient({ id }: BillingClientDetailCli
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Message Modal */}
+      {showMessageModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-brand-primary">메시지 보내기</h3>
+                <p className="text-sm text-brand-muted mt-0.5">{client.companyName}</p>
+              </div>
+              <button
+                onClick={() => { setShowMessageModal(false); setMessageText(''); setMessageResult(null); }}
+                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleSendMessage} className="p-6 space-y-4">
+              {messageResult && (
+                <div className={`px-4 py-3 rounded-xl text-sm ${
+                  messageResult.type === 'success'
+                    ? 'bg-green-50 border border-green-200 text-green-700'
+                    : 'bg-red-50 border border-red-200 text-red-600'
+                }`}>
+                  {messageResult.text}
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-brand-text mb-1.5">
+                  메시지 <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  required
+                  rows={4}
+                  placeholder="발송할 메시지를 입력하세요..."
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-brand-text placeholder:text-brand-muted/50 focus:outline-none focus:ring-2 focus:ring-brand-secondary/30 focus:border-brand-secondary resize-none"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={isSendingMessage || !messageText.trim()}
+                  className="flex-1 px-4 py-2.5 bg-brand-secondary text-white rounded-xl text-sm font-medium hover:bg-brand-secondary/90 disabled:opacity-50 transition-colors"
+                >
+                  {isSendingMessage ? '발송 중...' : '발송'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowMessageModal(false); setMessageText(''); setMessageResult(null); }}
+                  className="px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors"
+                >
+                  닫기
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

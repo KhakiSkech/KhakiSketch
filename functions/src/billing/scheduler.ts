@@ -5,8 +5,6 @@ import { logger } from "firebase-functions/v2";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { SolapiClient } from "./solapi-client";
-import { PaypleClient } from "./payple-client";
-import { PopbillClient } from "./popbill-client";
 import { renderMessage, formatAmount } from "./templates";
 import type {
   BillingClientDoc,
@@ -17,20 +15,9 @@ import type {
 
 const solapiApiKey = defineSecret("SOLAPI_API_KEY");
 const solapiApiSecret = defineSecret("SOLAPI_API_SECRET");
-const paypleClientId = defineSecret("PAYPLE_CLIENT_ID");
-const paypleClientSecret = defineSecret("PAYPLE_CLIENT_SECRET");
-const popbillLinkId = defineSecret("POPBILL_LINK_ID");
-const popbillSecretKey = defineSecret("POPBILL_SECRET_KEY");
 
 const REGION = "asia-northeast3";
-const SECRETS = [
-  solapiApiKey,
-  solapiApiSecret,
-  paypleClientId,
-  paypleClientSecret,
-  popbillLinkId,
-  popbillSecretKey,
-];
+const SECRETS = [solapiApiKey, solapiApiSecret];
 
 // Seoul 현재 날짜를 YYYY-MM-DD 반환
 function getSeoulDateString(): string {
@@ -112,113 +99,6 @@ async function sendSms(
   return result;
 }
 
-async function issueTaxInvoiceForInvoice(
-  popbill: PopbillClient,
-  solapi: SolapiClient,
-  settings: BillingSettingsDoc,
-  invoiceRef: FirebaseFirestore.DocumentReference,
-  invoice: BillingInvoiceDoc,
-  clientData: BillingClientDoc
-): Promise<void> {
-  const today = getSeoulDateString().replace(/-/g, "");
-  const yearMonthLabel = invoice.yearMonth.replace("-", "년 ") + "월";
-  const itemName = `${invoice.projectName} SW 운영관리 서비스 (${yearMonthLabel})`;
-
-  // 사업자 → 세금계산서, 개인 → 현금영수증
-  const isIndividual = clientData.clientType === "individual";
-
-  let issueResult: { success: boolean; taxInvoiceId?: string; cashBillId?: string; errorMessage?: string };
-
-  if (isIndividual) {
-    // 개인 고객: 현금영수증 발행
-    const cbResult = await popbill.issueCashBill({
-      mgtKey: invoiceRef.id,
-      tradeDate: today,
-      supplyCost: invoice.amount,
-      tax: invoice.taxAmount,
-      totalAmount: invoice.totalAmount,
-      identityNum: clientData.phone.replace(/-/g, ""),
-      itemName,
-      customerName: clientData.contactName,
-      customerEmail: clientData.taxEmail || clientData.email,
-      corpNum: settings.supplierRegNo,
-    });
-    issueResult = {
-      success: cbResult.success,
-      taxInvoiceId: cbResult.cashBillId,
-      errorMessage: cbResult.errorMessage,
-    };
-  } else {
-    // 사업자 고객: 세금계산서 발행
-    const tiResult = await popbill.registIssue({
-      mgtKey: invoiceRef.id,
-      writeDate: today,
-      issuer: {
-        corpNum: settings.supplierRegNo,
-        corpName: settings.supplierName,
-        ceoName: settings.supplierCeo,
-        addr: "",
-        bizType: settings.supplierType,
-        bizClass: settings.supplierCategory,
-        contactName: settings.supplierName,
-        email: "",
-      },
-      receiver: {
-        corpNum: clientData.businessRegNo,
-        corpName: clientData.companyName,
-        ceoName: clientData.contactName,
-        addr: "",
-        bizType: clientData.companyType,
-        bizClass: clientData.companyCategory,
-        contactName: clientData.contactName,
-        email: clientData.taxEmail,
-      },
-      supplyCostTotal: invoice.amount,
-      taxTotal: invoice.taxAmount,
-      totalAmount: invoice.totalAmount,
-      remark1: invoice.projectName,
-      items: [
-        {
-          serialNum: 1,
-          purchaseDT: today,
-          itemName,
-          spec: "",
-          qty: 1,
-          unitCost: invoice.amount,
-          supplyCost: invoice.amount,
-          tax: invoice.taxAmount,
-          remark: invoice.projectName,
-        },
-      ],
-    });
-    issueResult = {
-      success: tiResult.success,
-      taxInvoiceId: tiResult.taxInvoiceId,
-      errorMessage: tiResult.errorMessage,
-    };
-  }
-
-  if (issueResult.success) {
-    await invoiceRef.update({
-      taxInvoiceId: issueResult.taxInvoiceId ?? invoiceRef.id,
-      updatedAt: FieldValue.serverTimestamp(),
-    });
-  } else {
-    const docType = isIndividual ? "현금영수증" : "세금계산서";
-    logger.error(`${docType} issue failed`, {
-      invoiceId: invoiceRef.id,
-      error: issueResult.errorMessage,
-    });
-    // 관리자 SMS 알림
-    const adminMsg = `[KSI] ${docType} 발행 실패: ${invoice.projectName} ${invoice.yearMonth} - ${issueResult.errorMessage ?? "오류"}. 수동 발행 필요.`;
-    await solapi.sendMessage({
-      to: settings.solapiSendPhone,
-      from: settings.solapiSendPhone,
-      text: adminMsg,
-    });
-  }
-}
-
 // Step 1: 오늘 결제일인 active 프로젝트의 invoice 생성
 async function generateInvoices(settings: BillingSettingsDoc): Promise<void> {
   const db = admin.firestore();
@@ -243,7 +123,6 @@ async function generateInvoices(settings: BillingSettingsDoc): Promise<void> {
 
   for (const projectDoc of projectsSnap.docs) {
     const project = projectDoc.data() as BillingProjectDoc;
-    // parent path: billing-clients/{clientId}/projects/{projectId}
     const clientRef = projectDoc.ref.parent.parent;
     if (!clientRef) continue;
 
@@ -275,13 +154,11 @@ async function generateInvoices(settings: BillingSettingsDoc): Promise<void> {
         totalAmount: amount + taxAmount,
         status: "pending",
         daysOverdue: 0,
-        payplePaymentId: null,
         taxInvoiceId: null,
         paidAt: null,
         confirmedBy: null,
         firstNoticeSent: false,
         secondNoticeSent: false,
-        retryCount: 0,
         lastError: null,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
@@ -302,10 +179,8 @@ async function generateInvoices(settings: BillingSettingsDoc): Promise<void> {
   logger.info("generateInvoices: done", { count, yearMonth, todayDay });
 }
 
-// Step 2: pending invoice + 빌링키 → 페이플 출금
-async function requestCmsPayments(
-  payple: PaypleClient,
-  popbill: PopbillClient,
+// Step 2: pending invoice → 이체 안내 SMS 발송
+async function sendTransferGuides(
   solapi: SolapiClient,
   settings: BillingSettingsDoc
 ): Promise<void> {
@@ -317,23 +192,22 @@ async function requestCmsPayments(
     .get();
 
   if (invoicesSnap.empty) {
-    logger.info("requestCmsPayments: no pending invoices");
+    logger.info("sendTransferGuides: no pending invoices");
     return;
   }
 
   const month = getSeoulYearMonth().split("-")[1].replace(/^0/, "");
+  const todayStr = getSeoulDateString();
 
   for (const invoiceDoc of invoicesSnap.docs) {
     const invoice = invoiceDoc.data() as BillingInvoiceDoc;
     const invoiceRef = invoiceDoc.ref;
 
-    // 이중 출금 방지
-    if (invoice.payplePaymentId) {
-      logger.info("requestCmsPayments: skip (already has paymentId)", {
-        invoiceId: invoiceDoc.id,
-      });
-      continue;
-    }
+    // 오늘 생성된 invoice만 안내 (이미 안내된 것은 건너뜀)
+    const createdAtDate = invoice.createdAt.toDate();
+    const createdStr = createdAtDate
+      .toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+    if (createdStr !== todayStr) continue;
 
     const clientRef = invoiceRef.parent.parent;
     if (!clientRef) continue;
@@ -342,144 +216,39 @@ async function requestCmsPayments(
     if (!clientSnap.exists) continue;
     const clientData = clientSnap.data() as BillingClientDoc;
 
-    if (clientData.paypleBillingKey) {
-      // CMS 자동 출금 시도
-      const payResult = await payple.requestBillingPay({
-        billingKey: clientData.paypleBillingKey,
-        amount: invoice.totalAmount,
-        orderId: `${clientRef.id}/${invoiceDoc.id}`,
-        productName: `${invoice.projectName} ${invoice.yearMonth} 운영관리비`,
-        buyerName: clientData.contactName,
-        buyerEmail: clientData.email,
-        buyerPhone: clientData.phone,
-      });
+    const guideMsg = renderMessage("manual_transfer_guide", {
+      contactName: clientData.contactName,
+      projectName: invoice.projectName,
+      totalAmount: formatAmount(invoice.totalAmount),
+      billingDate: "",
+      month,
+      bankInfo: `${settings.bankName} ${settings.bankAccount} (${settings.bankHolder})`,
+      taxEmail: clientData.taxEmail,
+      contactPhone: settings.contactPhone,
+    });
 
-      if (payResult.success) {
-        await invoiceRef.update({
-          status: "paid",
-          payplePaymentId: payResult.paymentId ?? null,
-          paidAt: FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp(),
-        });
+    const smsResult = await sendSms(
+      solapi,
+      settings.solapiSendPhone,
+      clientData.phone,
+      guideMsg,
+      settings.useAlimtalk
+    );
 
-        // 출금 성공 SMS
-        const successMsg = renderMessage("billing_success", {
-          contactName: clientData.contactName,
-          projectName: invoice.projectName,
-          totalAmount: formatAmount(invoice.totalAmount),
-          billingDate: "",
-          month,
-          bankInfo: `${settings.bankName} ${settings.bankAccount} (${settings.bankHolder})`,
-          taxEmail: clientData.taxEmail,
-          contactPhone: settings.contactPhone,
-        });
-        const smsResult = await sendSms(
-          solapi,
-          settings.solapiSendPhone,
-          clientData.phone,
-          successMsg,
-          settings.useAlimtalk
-        );
-        await logNotification({
-          clientId: clientRef.id,
-          clientName: clientData.companyName,
-          projectId: invoice.projectId,
-          type: "billing_success",
-          channel: settings.useAlimtalk ? "alimtalk" : "sms",
-          recipientPhone: clientData.phone,
-          message: successMsg,
-          status: smsResult.success ? "sent" : "failed",
-          errorMessage: smsResult.error ?? null,
-        });
-
-        // 세금계산서 자동 발행
-        if (settings.autoIssueTaxInvoice) {
-          try {
-            await issueTaxInvoiceForInvoice(
-              popbill,
-              solapi,
-              settings,
-              invoiceRef,
-              invoice,
-              clientData
-            );
-          } catch (err) {
-            logger.error("Tax invoice issue error", { error: String(err) });
-          }
-        }
-      } else {
-        await invoiceRef.update({
-          status: "failed",
-          lastError: payResult.errorMessage ?? "출금 실패",
-          updatedAt: FieldValue.serverTimestamp(),
-        });
-
-        // 출금 실패 SMS
-        const failMsg = renderMessage("billing_failed", {
-          contactName: clientData.contactName,
-          projectName: invoice.projectName,
-          totalAmount: formatAmount(invoice.totalAmount),
-          billingDate: "",
-          month,
-          bankInfo: "",
-          taxEmail: clientData.taxEmail,
-          contactPhone: settings.contactPhone,
-        });
-        const smsResult = await sendSms(
-          solapi,
-          settings.solapiSendPhone,
-          clientData.phone,
-          failMsg,
-          settings.useAlimtalk
-        );
-        await logNotification({
-          clientId: clientRef.id,
-          clientName: clientData.companyName,
-          projectId: invoice.projectId,
-          type: "billing_failed",
-          channel: settings.useAlimtalk ? "alimtalk" : "sms",
-          recipientPhone: clientData.phone,
-          message: failMsg,
-          status: smsResult.success ? "sent" : "failed",
-          errorMessage: smsResult.error ?? null,
-        });
-      }
-    } else {
-      // 빌링키 없음 → 수동 이체 안내
-      const guideMsg = renderMessage("manual_transfer_guide", {
-        contactName: clientData.contactName,
-        projectName: invoice.projectName,
-        totalAmount: formatAmount(invoice.totalAmount),
-        billingDate: "",
-        month,
-        bankInfo: `${settings.bankName} ${settings.bankAccount} (${settings.bankHolder})`,
-        taxEmail: clientData.taxEmail,
-        contactPhone: settings.contactPhone,
-      });
-      const smsResult = await sendSms(
-        solapi,
-        settings.solapiSendPhone,
-        clientData.phone,
-        guideMsg,
-        settings.useAlimtalk
-      );
-      await logNotification({
-        clientId: clientRef.id,
-        clientName: clientData.companyName,
-        projectId: invoice.projectId,
-        type: "billing_failed",
-        channel: settings.useAlimtalk ? "alimtalk" : "sms",
-        recipientPhone: clientData.phone,
-        message: guideMsg,
-        status: smsResult.success ? "sent" : "failed",
-        errorMessage: smsResult.error ?? null,
-      });
-    }
+    await logNotification({
+      clientId: clientRef.id,
+      clientName: clientData.companyName,
+      projectId: invoice.projectId,
+      type: "manual_transfer_guide",
+      channel: settings.useAlimtalk ? "alimtalk" : "sms",
+      recipientPhone: clientData.phone,
+      message: guideMsg,
+      status: smsResult.success ? "sent" : "failed",
+      errorMessage: smsResult.error ?? null,
+    });
   }
 
-  logger.info("requestCmsPayments: done", {
-    total: invoicesSnap.size,
-  });
+  logger.info("sendTransferGuides: done", { total: invoicesSnap.size });
 }
 
 // Step 3: N일 후 결제일인 프로젝트 → 사전 안내 SMS
@@ -528,7 +297,7 @@ async function sendPreReminders(
       totalAmount: formatAmount(totalAmount),
       billingDate,
       month: String(billingMonth),
-      bankInfo: "",
+      bankInfo: `${settings.bankName} ${settings.bankAccount} (${settings.bankHolder})`,
       taxEmail: clientData.taxEmail,
       contactPhone: settings.contactPhone,
     });
@@ -557,10 +326,8 @@ async function sendPreReminders(
   logger.info("sendPreReminders: done", { total: projectsSnap.size });
 }
 
-// Step 4: 미납 갱신 + 독촉 + CMS 재시도
+// Step 4: 미납 갱신 + 독촉 SMS
 async function updateOverdueAndNotify(
-  payple: PaypleClient,
-  popbill: PopbillClient,
   solapi: SolapiClient,
   settings: BillingSettingsDoc
 ): Promise<void> {
@@ -569,7 +336,7 @@ async function updateOverdueAndNotify(
 
   const invoicesSnap = await db
     .collectionGroup("invoices")
-    .where("status", "in", ["pending", "failed"])
+    .where("status", "in", ["pending", "overdue"])
     .get();
 
   if (invoicesSnap.empty) {
@@ -610,7 +377,7 @@ async function updateOverdueAndNotify(
     if (!clientSnap.exists) continue;
     const clientData = clientSnap.data() as BillingClientDoc;
 
-    // 1차 독촉 + CMS 재시도
+    // 1차 독촉
     if (
       daysOverdue >= settings.firstNoticeDaysAfter &&
       !invoice.firstNoticeSent
@@ -621,7 +388,7 @@ async function updateOverdueAndNotify(
         totalAmount: formatAmount(invoice.totalAmount),
         billingDate: "",
         month,
-        bankInfo: "",
+        bankInfo: `${settings.bankName} ${settings.bankAccount} (${settings.bankHolder})`,
         taxEmail: clientData.taxEmail,
         contactPhone: settings.contactPhone,
       });
@@ -644,66 +411,10 @@ async function updateOverdueAndNotify(
         errorMessage: smsResult.error ?? null,
       });
 
-      // CMS 재시도
-      if (
-        clientData.paypleBillingKey &&
-        invoice.retryCount < settings.maxRetryCount
-      ) {
-        const payResult = await payple.requestBillingPay({
-          billingKey: clientData.paypleBillingKey,
-          amount: invoice.totalAmount,
-          orderId: `${clientRef.id}/${invoiceDoc.id}`,
-          productName: `${invoice.projectName} ${invoice.yearMonth} 운영관리비`,
-          buyerName: clientData.contactName,
-          buyerEmail: clientData.email,
-          buyerPhone: clientData.phone,
-        });
-
-        if (payResult.success) {
-          await invoiceRef.update({
-            status: "paid",
-            payplePaymentId: payResult.paymentId ?? null,
-            paidAt: FieldValue.serverTimestamp(),
-            firstNoticeSent: true,
-            retryCount: invoice.retryCount + 1,
-            updatedAt: FieldValue.serverTimestamp(),
-          });
-
-          if (settings.autoIssueTaxInvoice) {
-            try {
-              const updatedInvoice = {
-                ...invoice,
-                status: "paid" as const,
-              };
-              await issueTaxInvoiceForInvoice(
-                popbill,
-                solapi,
-                settings,
-                invoiceRef,
-                updatedInvoice,
-                clientData
-              );
-            } catch (err) {
-              logger.error("Tax invoice issue error on retry", {
-                error: String(err),
-              });
-            }
-          }
-          continue;
-        } else {
-          await invoiceRef.update({
-            retryCount: invoice.retryCount + 1,
-            lastError: payResult.errorMessage ?? "재시도 실패",
-            firstNoticeSent: true,
-            updatedAt: FieldValue.serverTimestamp(),
-          });
-        }
-      } else {
-        await invoiceRef.update({
-          firstNoticeSent: true,
-          updatedAt: FieldValue.serverTimestamp(),
-        });
-      }
+      await invoiceRef.update({
+        firstNoticeSent: true,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
     }
 
     // 2차 독촉
@@ -745,7 +456,7 @@ async function updateOverdueAndNotify(
       });
     }
 
-    // 관리자 심각 알림 (D+7+, 고객별 1회 — daysOverdue가 정확히 7일 때)
+    // 관리자 심각 알림 (D+7, 고객별 1회)
     if (daysOverdue >= 7 && daysOverdue < 8) {
       const adminMsg = `[KSI 미납 심각] ${clientData.companyName} / ${invoice.projectName} / ${invoice.yearMonth} / ${formatAmount(invoice.totalAmount)}원 / D+${daysOverdue}`;
       const smsResult = await sendSms(
@@ -874,18 +585,8 @@ export const billingDailyCycle = onSchedule(
       solapiApiKey.value(),
       solapiApiSecret.value()
     );
-    const payple = new PaypleClient(
-      paypleClientId.value(),
-      paypleClientSecret.value(),
-      settings.paypleIsSandbox
-    );
-    const popbill = new PopbillClient(
-      popbillLinkId.value(),
-      popbillSecretKey.value(),
-      settings.popbillIsSandbox
-    );
 
-    // Step 1
+    // Step 1: 청구서 생성
     try {
       await generateInvoices(settings);
     } catch (err) {
@@ -894,16 +595,16 @@ export const billingDailyCycle = onSchedule(
       });
     }
 
-    // Step 2
+    // Step 2: 이체 안내 SMS 발송
     try {
-      await requestCmsPayments(payple, popbill, solapi, settings);
+      await sendTransferGuides(solapi, settings);
     } catch (err) {
-      logger.error("billingDailyCycle step2 requestCmsPayments failed", {
+      logger.error("billingDailyCycle step2 sendTransferGuides failed", {
         error: String(err),
       });
     }
 
-    // Step 3
+    // Step 3: 사전 안내
     try {
       await sendPreReminders(solapi, settings);
     } catch (err) {
@@ -912,16 +613,16 @@ export const billingDailyCycle = onSchedule(
       });
     }
 
-    // Step 4
+    // Step 4: 연체 갱신 + 독촉
     try {
-      await updateOverdueAndNotify(payple, popbill, solapi, settings);
+      await updateOverdueAndNotify(solapi, settings);
     } catch (err) {
       logger.error("billingDailyCycle step4 updateOverdueAndNotify failed", {
         error: String(err),
       });
     }
 
-    // Step 5
+    // Step 5: 해지 처리
     try {
       await processTerminations(solapi, settings);
     } catch (err) {

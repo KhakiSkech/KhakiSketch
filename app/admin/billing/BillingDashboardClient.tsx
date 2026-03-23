@@ -8,8 +8,7 @@ import type { BillingDashboardSummary, BillingInvoice, BillingNotificationLog } 
 
 const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   pre_reminder: '사전안내',
-  billing_success: '출금완료',
-  billing_failed: '출금실패',
+  manual_transfer_guide: '이체안내',
   overdue_1st: '1차독촉',
   overdue_2nd: '2차독촉',
   overdue_severe: '미납심각',

@@ -26,15 +26,13 @@ function fillTemplate(template: string, vars: TemplateVars): string {
 }
 
 const TEMPLATES = {
-  pre_reminder: `[카키스케치] {contactName}님, {projectName} 운영관리비 {totalAmount}원이 {billingDate}에 등록 계좌에서 자동 출금됩니다.
-서비스 변경/해지: {contactPhone}`,
-
-  billing_success: `[카키스케치] {projectName} {month}월 운영관리비 {totalAmount}원 정상 출금. 세금계산서가 {taxEmail}로 발송됩니다.`,
-
-  billing_failed: `[카키스케치] {contactName}님, {projectName} {month}월 운영관리비 {totalAmount}원 출금이 실패했습니다. 계좌 잔액을 확인해주세요. 3일 후 재출금됩니다.
+  pre_reminder: `[카키스케치] {contactName}님, {projectName} {month}월 운영관리비 {totalAmount}원 입금 안내입니다.
+입금계좌: {bankInfo}
+입금기한: {billingDate}
 문의: {contactPhone}`,
 
-  overdue_1st: `[카키스케치] {contactName}님, {projectName} 운영관리비가 미납 상태입니다. 계좌 잔액 확인 후 자동 출금이 재시도됩니다.
+  overdue_1st: `[카키스케치] {contactName}님, {projectName} 운영관리비가 미납 상태입니다. 아래 계좌로 입금 부탁드립니다.
+입금계좌: {bankInfo}
 문의: {contactPhone}`,
 
   overdue_2nd: `[카키스케치] {contactName}님, {projectName} 운영관리비 미납이 지속되고 있습니다. 빠른 확인 부탁드립니다. 서비스 유지에 영향이 있을 수 있습니다.

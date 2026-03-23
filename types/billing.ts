@@ -15,7 +15,9 @@ export interface BillingClient {
   companyCategory: string;
   bankCode: string;
   bankAccountNo: string;
-  paypleBillingKey: string;
+  /** @deprecated CMS 자동이체 제거됨 (git tag: billing-payple-popbill-archive) */
+  paypleBillingKey?: string;
+  sourceLeadId?: string;
   memo: string;
   status: 'active' | 'inactive';
   createdAt: string;
@@ -42,6 +44,7 @@ export interface BillingProject {
 }
 
 // 청구서
+/** @deprecated 'failed' 상태는 CMS 자동이체 제거 후 더 이상 새로 생성되지 않음 (레거시 데이터 호환용) */
 export type InvoiceStatus = 'pending' | 'paid' | 'overdue' | 'waived' | 'failed';
 
 export interface BillingInvoice {
@@ -56,13 +59,15 @@ export interface BillingInvoice {
   totalAmount: number;
   status: InvoiceStatus;
   daysOverdue: number;
-  payplePaymentId: string | null;
+  /** @deprecated CMS 자동이체 제거됨 */
+  payplePaymentId?: string | null;
   taxInvoiceId: string | null;
   paidAt: string | null;
   confirmedBy: string | null;
   firstNoticeSent: boolean;
   secondNoticeSent: boolean;
-  retryCount: number;
+  /** @deprecated CMS 재시도 제거됨 */
+  retryCount?: number;
   lastError: string | null;
   createdAt: string;
   updatedAt: string;
@@ -70,7 +75,7 @@ export interface BillingInvoice {
 
 // 알림 로그
 export type NotificationType =
-  | 'pre_reminder' | 'billing_success' | 'billing_failed'
+  | 'pre_reminder' | 'manual_transfer_guide'
   | 'overdue_1st' | 'overdue_2nd' | 'overdue_severe'
   | 'termination_scheduled' | 'termination_complete' | 'manual';
 
@@ -93,16 +98,14 @@ export interface BillingSettings {
   reminderDaysBefore: number;
   firstNoticeDaysAfter: number;
   secondNoticeDaysAfter: number;
-  maxRetryCount: number;
+  /** @deprecated CMS 재시도 제거됨 */
+  maxRetryCount?: number;
   bankName: string;
   bankAccount: string;
   bankHolder: string;
   contactPhone: string;
   solapiSendPhone: string;
   useAlimtalk: boolean;
-  paypleIsSandbox: boolean;
-  popbillIsSandbox: boolean;
-  autoIssueTaxInvoice: boolean;
   supplierRegNo: string;
   supplierName: string;
   supplierCeo: string;

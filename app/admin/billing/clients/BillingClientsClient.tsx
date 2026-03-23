@@ -111,7 +111,6 @@ export default function BillingClientsClient(): React.ReactElement {
                   <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">담당자</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">연락처</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">상태</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">CMS</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">등록일</th>
                 </tr>
               </thead>
@@ -137,15 +136,6 @@ export default function BillingClientsClient(): React.ReactElement {
                           : 'bg-gray-100 text-gray-600'
                       }`}>
                         {client.status === 'active' ? '활성' : '비활성'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        client.paypleBillingKey
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        {client.paypleBillingKey ? '등록됨' : '미등록'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-brand-muted">

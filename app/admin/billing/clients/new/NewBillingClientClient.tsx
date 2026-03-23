@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createBillingClient } from '@/lib/firestore-billing-clients';
+import { getLeadById } from '@/lib/firestore-quotes';
 
 interface FormData {
   companyName: string;
@@ -31,9 +32,39 @@ const INITIAL_FORM: FormData = {
 
 export default function NewBillingClientClient(): React.ReactElement {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromLead = searchParams.get('fromLead');
+
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
+  const [sourceLeadId, setSourceLeadId] = useState<string | null>(null);
+  const [leadLabel, setLeadLabel] = useState<string | null>(null);
+  const [isLoadingLead, setIsLoadingLead] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!fromLead) return;
+
+    const prefillFromLead = async () => {
+      setIsLoadingLead(true);
+      const result = await getLeadById(fromLead);
+      if (result.success && result.data) {
+        const lead = result.data;
+        setForm((prev) => ({
+          ...prev,
+          contactName: lead.customerName,
+          companyName: lead.company ?? '',
+          email: lead.email,
+          phone: lead.phone,
+        }));
+        setSourceLeadId(fromLead);
+        setLeadLabel(`견적 #${fromLead.slice(0, 8)}`);
+      }
+      setIsLoadingLead(false);
+    };
+
+    prefillFromLead();
+  }, [fromLead]);
 
   const handleChange = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -62,8 +93,8 @@ export default function NewBillingClientClient(): React.ReactElement {
       clientType: 'business',
       bankCode: '',
       bankAccountNo: '',
-      paypleBillingKey: '',
       status: 'active',
+      ...(sourceLeadId ? { sourceLeadId } : {}),
     });
 
     if (result.success && result.data) {
@@ -89,6 +120,21 @@ export default function NewBillingClientClient(): React.ReactElement {
         </Link>
         <h1 className="text-2xl font-bold text-brand-primary mt-2">새 고객 등록</h1>
       </div>
+
+      {/* Lead Pre-fill Banner */}
+      {isLoadingLead && (
+        <div className="px-4 py-3 bg-brand-primary/5 border border-brand-primary/10 rounded-xl text-sm text-brand-muted">
+          견적 정보를 불러오는 중...
+        </div>
+      )}
+      {leadLabel && !isLoadingLead && (
+        <div className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700 flex items-center gap-2">
+          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{leadLabel}에서 가져온 고객 정보입니다. 필요에 따라 수정할 수 있습니다.</span>
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-brand-primary/10 p-6 space-y-6">

@@ -5,8 +5,6 @@ import { logger } from "firebase-functions/v2";
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { SolapiClient } from "./solapi-client";
-import { PaypleClient } from "./payple-client";
-import { PopbillClient } from "./popbill-client";
 import { renderMessage } from "./templates";
 import type {
   BillingClientDoc,
@@ -16,20 +14,9 @@ import type {
 
 const solapiApiKey = defineSecret("SOLAPI_API_KEY");
 const solapiApiSecret = defineSecret("SOLAPI_API_SECRET");
-const paypleClientId = defineSecret("PAYPLE_CLIENT_ID");
-const paypleClientSecret = defineSecret("PAYPLE_CLIENT_SECRET");
-const popbillLinkId = defineSecret("POPBILL_LINK_ID");
-const popbillSecretKey = defineSecret("POPBILL_SECRET_KEY");
 
 const REGION = "asia-northeast3";
-const ALL_SECRETS = [
-  solapiApiKey,
-  solapiApiSecret,
-  paypleClientId,
-  paypleClientSecret,
-  popbillLinkId,
-  popbillSecretKey,
-];
+const SOLAPI_SECRETS = [solapiApiKey, solapiApiSecret];
 
 function requireAdmin(request: { auth?: { token: Record<string, unknown> } }): void {
   if (!request.auth) {
@@ -68,96 +55,10 @@ async function logNotification(params: {
 }
 
 /**
- * Callable: 고객 CMS 빌링키 등록 URL 생성 → SMS 발송
- */
-export const registerCmsBilling = onCall(
-  { region: REGION, secrets: ALL_SECRETS },
-  async (request) => {
-    requireAdmin(request);
-
-    const { clientId } = request.data as { clientId?: string };
-    if (!clientId) {
-      throw new HttpsError("invalid-argument", "clientId가 필요합니다.");
-    }
-
-    const db = admin.firestore();
-    const [clientSnap, settings] = await Promise.all([
-      db.doc(`billing-clients/${clientId}`).get(),
-      loadSettings(),
-    ]);
-
-    if (!clientSnap.exists) {
-      throw new HttpsError("not-found", "고객 정보를 찾을 수 없습니다.");
-    }
-    const clientData = clientSnap.data() as BillingClientDoc;
-
-    const payple = new PaypleClient(
-      paypleClientId.value(),
-      paypleClientSecret.value(),
-      settings.paypleIsSandbox
-    );
-
-    const orderId = `cms_${clientId}_${Date.now()}`;
-    const projectId =
-      process.env.GCLOUD_PROJECT ??
-      (process.env.FIREBASE_CONFIG
-        ? (JSON.parse(process.env.FIREBASE_CONFIG) as { projectId: string }).projectId
-        : "khakisketch");
-    const returnUrl = `https://asia-northeast3-${projectId}.cloudfunctions.net/paypleWebhook`;
-
-    const regResult = await payple.registerCmsBillingUrl({
-      orderId,
-      buyerName: clientData.contactName,
-      buyerEmail: clientData.email,
-      buyerPhone: clientData.phone,
-      returnUrl,
-    });
-
-    if (!regResult.success || !regResult.authUrl) {
-      logger.error("registerCmsBilling: payple register failed", {
-        clientId,
-        error: regResult.errorMessage,
-      });
-      throw new HttpsError(
-        "internal",
-        regResult.errorMessage ?? "빌링키 등록 URL 생성 실패"
-      );
-    }
-
-    // 고객에게 SMS로 인증 URL 발송
-    const solapi = new SolapiClient(
-      solapiApiKey.value(),
-      solapiApiSecret.value()
-    );
-    const msg = `[카키스케치] ${clientData.contactName}님, CMS 자동이체 등록 링크입니다. 아래 링크에서 본인인증 후 계좌를 등록해주세요.\n${regResult.authUrl}\n문의: ${settings.contactPhone}`;
-    const smsResult = await solapi.sendMessage({
-      to: clientData.phone,
-      from: settings.solapiSendPhone,
-      text: msg,
-    });
-
-    await logNotification({
-      clientId,
-      clientName: clientData.companyName,
-      projectId: null,
-      type: "manual",
-      channel: "sms",
-      recipientPhone: clientData.phone,
-      message: msg,
-      status: smsResult.success ? "sent" : "failed",
-      errorMessage: smsResult.error ?? null,
-    });
-
-    logger.info("registerCmsBilling: done", { clientId, authUrl: regResult.authUrl });
-    return { success: true, authUrl: regResult.authUrl };
-  }
-);
-
-/**
  * Callable: 수동 입금 확인
  */
 export const confirmPayment = onCall(
-  { region: REGION, secrets: ALL_SECRETS },
+  { region: REGION, secrets: SOLAPI_SECRETS },
   async (request) => {
     requireAdmin(request);
 
@@ -208,7 +109,7 @@ export const confirmPayment = onCall(
  * Callable: 청구 면제 처리
  */
 export const waiveInvoice = onCall(
-  { region: REGION, secrets: ALL_SECRETS },
+  { region: REGION, secrets: SOLAPI_SECRETS },
   async (request) => {
     requireAdmin(request);
 
@@ -253,7 +154,7 @@ export const waiveInvoice = onCall(
  * Callable: 수동 알림 SMS/알림톡 발송
  */
 export const sendManualNotice = onCall(
-  { region: REGION, secrets: ALL_SECRETS },
+  { region: REGION, secrets: SOLAPI_SECRETS },
   async (request) => {
     requireAdmin(request);
 
@@ -316,7 +217,7 @@ export const sendManualNotice = onCall(
  * Callable: 프로젝트 해지 처리 (terminating 전환 + SMS)
  */
 export const terminateProject = onCall(
-  { region: REGION, secrets: ALL_SECRETS },
+  { region: REGION, secrets: SOLAPI_SECRETS },
   async (request) => {
     requireAdmin(request);
 
@@ -399,131 +300,5 @@ export const terminateProject = onCall(
       terminationDate,
     });
     return { success: true };
-  }
-);
-
-/**
- * Callable: 세금계산서 수동 발행
- */
-export const issueTaxInvoice = onCall(
-  { region: REGION, secrets: ALL_SECRETS },
-  async (request) => {
-    requireAdmin(request);
-
-    const { invoiceId, clientId } = request.data as {
-      invoiceId?: string;
-      clientId?: string;
-    };
-    if (!invoiceId || !clientId) {
-      throw new HttpsError(
-        "invalid-argument",
-        "invoiceId와 clientId가 필요합니다."
-      );
-    }
-
-    const db = admin.firestore();
-
-    const invoiceRef = db.doc(`billing-clients/${clientId}/invoices/${invoiceId}`);
-    const invoiceSnap = await invoiceRef.get();
-
-    if (!invoiceSnap.exists) {
-      throw new HttpsError("not-found", "청구서를 찾을 수 없습니다.");
-    }
-
-    const invoice = invoiceSnap.data() as BillingInvoiceDoc;
-
-    if (invoice.status !== "paid") {
-      throw new HttpsError(
-        "failed-precondition",
-        "납부 완료 상태의 청구서만 세금계산서를 발행할 수 있습니다."
-      );
-    }
-
-    const clientRef = db.doc(`billing-clients/${clientId}`);
-
-    const [clientSnap, settings] = await Promise.all([
-      clientRef.get(),
-      loadSettings(),
-    ]);
-
-    if (!clientSnap.exists) {
-      throw new HttpsError("not-found", "고객 정보를 찾을 수 없습니다.");
-    }
-    const clientData = clientSnap.data() as BillingClientDoc;
-
-    const popbill = new PopbillClient(
-      popbillLinkId.value(),
-      popbillSecretKey.value(),
-      settings.popbillIsSandbox
-    );
-
-    const today = new Date()
-      .toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" })
-      .replace(/-/g, "");
-    const yearMonthLabel = invoice.yearMonth.replace("-", "년 ") + "월";
-
-    const issueResult = await popbill.registIssue({
-      mgtKey: invoiceId,
-      writeDate: today,
-      issuer: {
-        corpNum: settings.supplierRegNo,
-        corpName: settings.supplierName,
-        ceoName: settings.supplierCeo,
-        addr: "",
-        bizType: settings.supplierType,
-        bizClass: settings.supplierCategory,
-        contactName: settings.supplierName,
-        email: "",
-      },
-      receiver: {
-        corpNum: clientData.businessRegNo,
-        corpName: clientData.companyName,
-        ceoName: clientData.contactName,
-        addr: "",
-        bizType: clientData.companyType,
-        bizClass: clientData.companyCategory,
-        contactName: clientData.contactName,
-        email: clientData.taxEmail,
-      },
-      supplyCostTotal: invoice.amount,
-      taxTotal: invoice.taxAmount,
-      totalAmount: invoice.totalAmount,
-      remark1: invoice.projectName,
-      items: [
-        {
-          serialNum: 1,
-          purchaseDT: today,
-          itemName: `${invoice.projectName} SW 운영관리 서비스 (${yearMonthLabel})`,
-          spec: "",
-          qty: 1,
-          unitCost: invoice.amount,
-          supplyCost: invoice.amount,
-          tax: invoice.taxAmount,
-          remark: invoice.projectName,
-        },
-      ],
-    });
-
-    if (!issueResult.success) {
-      logger.error("issueTaxInvoice: popbill failed", {
-        invoiceId,
-        error: issueResult.errorMessage,
-      });
-      throw new HttpsError(
-        "internal",
-        issueResult.errorMessage ?? "세금계산서 발행 실패"
-      );
-    }
-
-    await invoiceRef.update({
-      taxInvoiceId: issueResult.taxInvoiceId ?? invoiceId,
-      updatedAt: FieldValue.serverTimestamp(),
-    });
-
-    logger.info("issueTaxInvoice: done", {
-      invoiceId,
-      taxInvoiceId: issueResult.taxInvoiceId,
-    });
-    return { success: true, taxInvoiceId: issueResult.taxInvoiceId };
   }
 );

@@ -5,6 +5,8 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { getAllInvoices } from '@/lib/firestore-billing-invoices';
 import type { BillingInvoice, InvoiceStatus } from '@/types/billing';
+import Toast from '@/components/ui/Toast';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 type StatusFilter = 'all' | InvoiceStatus;
 
@@ -36,6 +38,13 @@ export default function BillingInvoicesClient(): React.ReactElement {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
   useEffect(() => {
     loadInvoices();
@@ -59,34 +68,48 @@ export default function BillingInvoicesClient(): React.ReactElement {
     setIsLoading(false);
   };
 
-  const handleConfirmPayment = async (invoice: BillingInvoice) => {
-    if (!confirm('입금을 확인하시겠습니까?')) return;
-    setActionLoading(`confirm-${invoice.id}`);
-    try {
-      const functions = getFunctions(getFirebaseAuth().app, 'asia-northeast3');
-      const confirmPayment = httpsCallable(functions, 'confirmPayment');
-      await confirmPayment({ clientId: invoice.clientId, invoiceId: invoice.id });
-      await loadInvoices();
-    } catch {
-      alert('입금 확인 처리에 실패했습니다.');
-    } finally {
-      setActionLoading(null);
-    }
+  const handleConfirmPayment = (invoice: BillingInvoice) => {
+    setConfirmState({
+      isOpen: true,
+      title: '입금 확인',
+      message: '입금을 확인하시겠습니까?',
+      onConfirm: async () => {
+        setConfirmState((prev) => ({ ...prev, isOpen: false }));
+        setActionLoading(`confirm-${invoice.id}`);
+        try {
+          const functions = getFunctions(getFirebaseAuth().app, 'asia-northeast3');
+          const confirmPayment = httpsCallable(functions, 'confirmPayment');
+          await confirmPayment({ clientId: invoice.clientId, invoiceId: invoice.id });
+          await loadInvoices();
+        } catch {
+          setToast({ message: '입금 확인 처리에 실패했습니다.', type: 'error' });
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
-  const handleWaiveInvoice = async (invoice: BillingInvoice) => {
-    if (!confirm('이 청구를 면제 처리하시겠습니까?')) return;
-    setActionLoading(`waive-${invoice.id}`);
-    try {
-      const functions = getFunctions(getFirebaseAuth().app, 'asia-northeast3');
-      const waiveInvoice = httpsCallable(functions, 'waiveInvoice');
-      await waiveInvoice({ clientId: invoice.clientId, invoiceId: invoice.id });
-      await loadInvoices();
-    } catch {
-      alert('면제 처리에 실패했습니다.');
-    } finally {
-      setActionLoading(null);
-    }
+  const handleWaiveInvoice = (invoice: BillingInvoice) => {
+    setConfirmState({
+      isOpen: true,
+      title: '면제 처리',
+      message: '이 청구를 면제 처리하시겠습니까?',
+      onConfirm: async () => {
+        setConfirmState((prev) => ({ ...prev, isOpen: false }));
+        setActionLoading(`waive-${invoice.id}`);
+        try {
+          const functions = getFunctions(getFirebaseAuth().app, 'asia-northeast3');
+          const waiveInvoice = httpsCallable(functions, 'waiveInvoice');
+          await waiveInvoice({ clientId: invoice.clientId, invoiceId: invoice.id });
+          await loadInvoices();
+        } catch {
+          setToast({ message: '면제 처리에 실패했습니다.', type: 'error' });
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
   const statusOptions: StatusFilter[] = ['all', 'pending', 'paid', 'overdue', 'failed', 'waived'];
@@ -101,6 +124,19 @@ export default function BillingInvoicesClient(): React.ReactElement {
 
   return (
     <div className="space-y-8">
+      {/* 토스트 알림 */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* 확인 모달 */}
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        onClose={() => setConfirmState((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmState.onConfirm}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmLabel="확인"
+      />
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-brand-primary">청구/수금</h1>

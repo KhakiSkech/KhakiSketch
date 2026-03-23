@@ -8,16 +8,12 @@ const DEFAULT_SETTINGS: BillingSettings = {
   reminderDaysBefore: 3,
   firstNoticeDaysAfter: 3,
   secondNoticeDaysAfter: 5,
-  maxRetryCount: 1,
   bankName: '',
   bankAccount: '',
   bankHolder: '',
   contactPhone: '',
   solapiSendPhone: '',
   useAlimtalk: false,
-  paypleIsSandbox: true,
-  popbillIsSandbox: true,
-  autoIssueTaxInvoice: false,
   supplierRegNo: '',
   supplierName: '',
   supplierCeo: '',
@@ -148,17 +144,6 @@ export default function BillingSettingsClient(): React.ReactElement {
               min="1"
               value={settings.secondNoticeDaysAfter}
               onChange={(e) => handleChange('secondNoticeDaysAfter', Number(e.target.value))}
-              className="w-full px-3 py-2 bg-brand-bg border border-brand-primary/10 rounded-xl text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-secondary/30 focus:border-brand-secondary"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-brand-text mb-1.5">CMS 재시도 횟수</label>
-            <input
-              type="number"
-              min="0"
-              max="5"
-              value={settings.maxRetryCount}
-              onChange={(e) => handleChange('maxRetryCount', Number(e.target.value))}
               className="w-full px-3 py-2 bg-brand-bg border border-brand-primary/10 rounded-xl text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-secondary/30 focus:border-brand-secondary"
             />
           </div>
@@ -294,15 +279,6 @@ export default function BillingSettingsClient(): React.ReactElement {
             />
             <span className="text-sm text-brand-text">알림톡 사용 (체크 해제 시 SMS)</span>
           </label>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={settings.autoIssueTaxInvoice}
-              onChange={(e) => handleChange('autoIssueTaxInvoice', e.target.checked)}
-              className="w-4 h-4 accent-brand-secondary"
-            />
-            <span className="text-sm text-brand-text">세금계산서 자동 발행 (출금 성공 시)</span>
-          </label>
         </div>
       </div>
 
@@ -311,28 +287,6 @@ export default function BillingSettingsClient(): React.ReactElement {
         <h2 className="text-lg font-bold text-brand-primary">API 연동 상태</h2>
         <p className="text-sm text-brand-muted">API 시크릿 키는 Firebase Secret Manager로 관리됩니다. 변경은 Firebase CLI를 사용하세요.</p>
         <div className="space-y-3">
-          {[
-            { label: '페이플 (Payple)', key: 'paypleIsSandbox' as const, sandboxField: 'paypleIsSandbox' as const },
-            { label: '팝빌 (Popbill)', key: 'popbillIsSandbox' as const, sandboxField: 'popbillIsSandbox' as const },
-          ].map(({ label, sandboxField }) => (
-            <div key={label} className="flex items-center justify-between p-4 bg-brand-bg rounded-xl">
-              <div>
-                <p className="font-medium text-brand-text">{label}</p>
-                <label className="flex items-center gap-2 mt-1 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings[sandboxField] as boolean}
-                    onChange={(e) => handleChange(sandboxField, e.target.checked)}
-                    className="w-3.5 h-3.5 accent-brand-secondary"
-                  />
-                  <span className="text-xs text-brand-muted">샌드박스 모드</span>
-                </label>
-              </div>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                시크릿 별도 관리
-              </span>
-            </div>
-          ))}
           <div className="flex items-center justify-between p-4 bg-brand-bg rounded-xl">
             <div>
               <p className="font-medium text-brand-text">Solapi</p>

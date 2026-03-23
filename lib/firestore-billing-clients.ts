@@ -47,7 +47,6 @@ function clientFromFirestore(docId: string, data: DocumentData): BillingClient {
     companyCategory: data.companyCategory || '',
     bankCode: data.bankCode || '',
     bankAccountNo: data.bankAccountNo || '',
-    paypleBillingKey: data.paypleBillingKey || '',
     memo: data.memo || '',
     status: data.status || 'active',
     createdAt: convertTimestamp(data.createdAt) || new Date().toISOString(),

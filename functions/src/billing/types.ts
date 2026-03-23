@@ -13,7 +13,9 @@ export interface BillingClientDoc {
   companyCategory: string;
   bankCode: string;
   bankAccountNo: string;
-  paypleBillingKey: string;
+  /** @deprecated CMS 자동이체 제거됨 (git tag: billing-payple-popbill-archive) */
+  paypleBillingKey?: string;
+  sourceLeadId?: string;
   memo: string;
   status: "active" | "inactive";
   createdAt: Timestamp;
@@ -47,13 +49,15 @@ export interface BillingInvoiceDoc {
   totalAmount: number;
   status: "pending" | "paid" | "overdue" | "waived" | "failed";
   daysOverdue: number;
-  payplePaymentId: string | null;
+  /** @deprecated CMS 자동이체 제거됨 */
+  payplePaymentId?: string | null;
   taxInvoiceId: string | null;
   paidAt: Timestamp | null;
   confirmedBy: string | null;
   firstNoticeSent: boolean;
   secondNoticeSent: boolean;
-  retryCount: number;
+  /** @deprecated CMS 재시도 제거됨 */
+  retryCount?: number;
   lastError: string | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -63,16 +67,14 @@ export interface BillingSettingsDoc {
   reminderDaysBefore: number;
   firstNoticeDaysAfter: number;
   secondNoticeDaysAfter: number;
-  maxRetryCount: number;
+  /** @deprecated CMS 재시도 제거됨 */
+  maxRetryCount?: number;
   bankName: string;
   bankAccount: string;
   bankHolder: string;
   contactPhone: string;
   solapiSendPhone: string;
   useAlimtalk: boolean;
-  paypleIsSandbox: boolean;
-  popbillIsSandbox: boolean;
-  autoIssueTaxInvoice: boolean;
   supplierRegNo: string;
   supplierName: string;
   supplierCeo: string;
