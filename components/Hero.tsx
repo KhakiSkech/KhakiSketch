@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, useSpring, useMotionValue, useTransform, useScroll } from 'framer-motion';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ANIMATION } from '@/lib/animation-config';
+import { trackCtaClick } from '@/lib/gtag';
 import HeroLaptops from './ui/HeroLaptops';
 import TechStackMarquee from '@/components/TechStackMarquee';
 import TypeWriter from './ui/TypeWriter';
@@ -236,6 +237,7 @@ export default function Hero() {
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-brand-primary text-white font-bold text-lg shadow-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-xl group"
                 style={{ transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
                 aria-label="무료 상담 신청 페이지로 이동"
+                onClick={() => trackCtaClick('hero', '무료 상담 신청하기')}
               >
                 무료 상담 신청하기
                 <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

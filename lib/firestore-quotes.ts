@@ -20,7 +20,7 @@ import {
 } from 'firebase/firestore';
 import { getFirebaseFirestore } from './firebase';
 import { withTimeout } from './utils';
-import { QuoteLead, LeadStatus, LeadPriority, LeadSource, LeadNote, LeadActivity, LeadTodo, TodoStatus, QuoteEmail, QuoteEmailStatus, CustomerStats } from '@/types/admin';
+import { QuoteLead, LeadStatus, LeadPriority, LeadSource, LeadNote, LeadActivity, LeadTodo, TodoStatus, QuoteEmail, QuoteEmailStatus, CustomerStats, LeadStats } from '@/types/admin';
 
 const LEADS_COLLECTION = 'quote-leads';
 
@@ -83,6 +83,9 @@ function fromFirestoreData(docId: string, data: DocumentData): QuoteLead {
     priority: data.priority || 'MEDIUM',
     assignedTo: data.assignedTo,
     source: data.source || 'WEBSITE',
+    utmSource: data.utmSource,
+    utmMedium: data.utmMedium,
+    utmCampaign: data.utmCampaign,
     ipAddress: data.ipAddress,
     userAgent: data.userAgent,
     referrer: data.referrer,
@@ -363,27 +366,26 @@ export async function addLeadActivity(
 /**
  * 리드 통계 조회
  */
-export async function getLeadStats(): Promise<QueryResult<{
-  total: number;
-  byStatus: Record<LeadStatus, number>;
-  byPriority: Record<LeadPriority, number>;
-  thisMonth: number;
-}>> {
+export async function getLeadStats(): Promise<QueryResult<LeadStats>> {
   try {
     const db = getFirebaseFirestore();
     const snapshot = await withTimeout(getDocs(collection(db, LEADS_COLLECTION)), 5000);
-    
+
     const leads = snapshot.docs.map((doc) => fromFirestoreData(doc.id, doc.data()));
-    
+
     const now = new Date();
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const byStatus: Record<LeadStatus, number> = {
       NEW: 0, CONTACTED: 0, QUOTED: 0, NEGOTIATING: 0, WON: 0, LOST: 0, HOLD: 0,
     };
-    
+
     const byPriority: Record<LeadPriority, number> = {
       LOW: 0, MEDIUM: 0, HIGH: 0, URGENT: 0,
+    };
+
+    const bySource: Record<LeadSource, number> = {
+      WEBSITE: 0, REFERRAL: 0, ADS: 0, DIRECT: 0, ETC: 0,
     };
 
     let thisMonth = 0;
@@ -391,12 +393,17 @@ export async function getLeadStats(): Promise<QueryResult<{
     leads.forEach((lead) => {
       byStatus[lead.status]++;
       byPriority[lead.priority]++;
-      
+      bySource[lead.source]++;
+
       const createdDate = new Date(lead.createdAt);
       if (createdDate >= thisMonthStart) {
         thisMonth++;
       }
     });
+
+    const wonCount = byStatus.WON;
+    const totalClosed = wonCount + byStatus.LOST;
+    const conversionRate = totalClosed > 0 ? Math.round((wonCount / totalClosed) * 100) : 0;
 
     return {
       success: true,
@@ -404,7 +411,10 @@ export async function getLeadStats(): Promise<QueryResult<{
         total: leads.length,
         byStatus,
         byPriority,
+        bySource,
         thisMonth,
+        conversionRate,
+        averageResponseTime: 0,
       },
     };
   } catch (error) {

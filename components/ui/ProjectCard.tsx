@@ -4,8 +4,10 @@ import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { trackPortfolioClick } from '@/lib/gtag';
 
 interface ProjectCardProps {
+  id?: string;
   pattern: React.ElementType;
   imageUrl?: string;
   title: string;
@@ -17,6 +19,7 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({
+  id = '',
   pattern: Pattern,
   imageUrl,
   title,
@@ -164,7 +167,12 @@ export default function ProjectCard({
   );
 
   return (
-    <Link href={href} className="block relative h-full" style={{ perspective: enableEffects ? "1000px" : undefined }}>
+    <Link
+      href={href}
+      className="block relative h-full"
+      style={{ perspective: enableEffects ? "1000px" : undefined }}
+      onClick={() => trackPortfolioClick(id, title, tag)}
+    >
       {cardContent}
     </Link>
   );

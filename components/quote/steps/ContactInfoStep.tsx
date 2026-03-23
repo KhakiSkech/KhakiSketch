@@ -4,7 +4,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useQuote } from '../QuoteContext';
 import { createLead } from '@/lib/firestore-quotes';
+import { trackQuoteSubmit } from '@/lib/gtag';
 import { logger } from '@/lib/logger';
+import type { LeadSource } from '@/types/admin';
 
 // --- Assets & Data from BudgetTimelineStep ---
 const budgetOptions = [
@@ -144,6 +146,18 @@ export default function ContactInfoStep() {
             `[${data.projectGoal || '목표 미정'}] ${data.projectTags?.join(', ') || ''}`;
 
         try {
+            // UTM 데이터 읽기 (sessionStorage)
+            const utmSource = typeof window !== 'undefined' ? (sessionStorage.getItem('utm_source') || undefined) : undefined;
+            const utmMedium = typeof window !== 'undefined' ? (sessionStorage.getItem('utm_medium') || undefined) : undefined;
+            const utmCampaign = typeof window !== 'undefined' ? (sessionStorage.getItem('utm_campaign') || undefined) : undefined;
+
+            // UTM 기반 source 자동 유도
+            const deriveSource = (): LeadSource => {
+                if (utmMedium === 'cpc' || utmMedium === 'paid') return 'ADS';
+                if (utmSource) return 'REFERRAL';
+                return 'WEBSITE';
+            };
+
             // 1. Firestore에 저장 (CRM)
             const leadResult = await createLead({
                 projectType: data.projectType,
@@ -169,7 +183,10 @@ export default function ContactInfoStep() {
                 preferredContact: data.preferredContact || [],
                 status: 'NEW',
                 priority: 'MEDIUM',
-                source: 'WEBSITE',
+                source: deriveSource(),
+                utmSource,
+                utmMedium,
+                utmCampaign,
                 landingPage: typeof window !== 'undefined' ? window.location.href : '',
             });
 
@@ -179,9 +196,12 @@ export default function ContactInfoStep() {
                 return;
             }
 
-            // 2. 관리자 알림은 Firestore onCreate 트리거 (Cloud Functions)가 자동 처리
+            // 2. GA4 이벤트 트래킹
+            trackQuoteSubmit(deriveSource(), data.projectType);
 
-            // 3. 제출 완료
+            // 3. 관리자 알림은 Firestore onCreate 트리거 (Cloud Functions)가 자동 처리
+
+            // 4. 제출 완료
             logger.info('[Quote] Lead submitted successfully');
             setIsComplete(true);
         } catch (error) {

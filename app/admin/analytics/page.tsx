@@ -3,8 +3,36 @@
 import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getFirebaseAuth } from '@/lib/firebase';
 import { getAllLeads, getLeadStats } from '@/lib/firestore-quotes';
-import { QuoteLead, LeadStatus } from '@/types/admin';
+import { QuoteLead, LeadStats } from '@/types/admin';
+
+// ---- GA4 타입 ----
+interface DailyRow {
+  date: string;
+  sessions: number;
+}
+
+interface TopPage {
+  pagePath: string;
+  views: number;
+}
+
+interface TrafficSource {
+  source: string;
+  medium: string;
+  sessions: number;
+}
+
+interface AnalyticsData {
+  activeUsers: number;
+  weeklyDaily: DailyRow[];
+  topPages: TopPage[];
+  trafficSources: TrafficSource[];
+  cachedAt: number;
+  error?: string;
+}
 
 // 차트 컴포넌트 (간단한 SVG 기반)
 const BarChart = ({ data, maxValue, color = 'bg-brand-primary' }: { data: number[]; maxValue: number; color?: string }) => (
@@ -110,17 +138,17 @@ const FunnelChart = ({ data }: { data: { label: string; value: number; color: st
 
 export default function AnalyticsPage(): React.ReactElement {
   const [leads, setLeads] = useState<QuoteLead[]>([]);
-  const [stats, setStats] = useState<{
-    total: number;
-    byStatus: Record<LeadStatus, number>;
-    byPriority: Record<string, number>;
-    thisMonth: number;
-  } | null>(null);
+  const [stats, setStats] = useState<LeadStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
+  // GA4 state
+  const [ga4Data, setGa4Data] = useState<AnalyticsData | null>(null);
+  const [ga4Loading, setGa4Loading] = useState(true);
+
   useEffect(() => {
     loadAnalytics();
+    loadGa4();
   }, [dateRange]);
 
   const loadAnalytics = async () => {
@@ -153,6 +181,21 @@ export default function AnalyticsPage(): React.ReactElement {
       logger.error('Error loading analytics:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadGa4 = async () => {
+    setGa4Loading(true);
+    try {
+      const functions = getFunctions(getFirebaseAuth().app, 'asia-northeast3');
+      const getAnalyticsData = httpsCallable<void, AnalyticsData>(functions, 'getAnalyticsData');
+      const result = await getAnalyticsData();
+      setGa4Data(result.data);
+    } catch (error) {
+      logger.error('Error loading GA4 data:', error);
+      setGa4Data(null);
+    } finally {
+      setGa4Loading(false);
     }
   };
 
@@ -204,6 +247,15 @@ export default function AnalyticsPage(): React.ReactElement {
     { label: '낮음', value: stats.byPriority.LOW, color: '#6B7280' },
   ].filter(item => item.value > 0) : [];
 
+  // 유입 채널 데이터
+  const sourceData = stats ? [
+    { label: '🌐 직접', value: stats.bySource.WEBSITE, color: '#3B82F6' },
+    { label: '🔗 추천', value: stats.bySource.REFERRAL, color: '#8B5CF6' },
+    { label: '🎯 광고', value: stats.bySource.ADS, color: '#F97316' },
+    { label: '📩 직접유입', value: stats.bySource.DIRECT, color: '#22C55E' },
+    { label: '기타', value: stats.bySource.ETC, color: '#6B7280' },
+  ].filter(item => item.value > 0) : [];
+
   // 퍼널 데이터
   const funnelData = stats ? [
     { label: '접수', value: stats.byStatus.NEW, color: '#3B82F6' },
@@ -213,8 +265,8 @@ export default function AnalyticsPage(): React.ReactElement {
   ] : [];
 
   // 전환율 계산
-  const conversionRate = stats && stats.byStatus.NEW > 0 
-    ? ((stats.byStatus.WON / stats.byStatus.NEW) * 100).toFixed(1)
+  const conversionRate = stats && stats.total > 0
+    ? ((stats.byStatus.WON / stats.total) * 100).toFixed(1)
     : '0.0';
 
   const monthlyData = getMonthlyData();
@@ -256,6 +308,113 @@ export default function AnalyticsPage(): React.ReactElement {
         </div>
       </div>
 
+      {/* ---- 사이트 트래픽 (GA4) ---- */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-xl font-bold text-brand-primary">사이트 트래픽</h2>
+          <p className="text-brand-muted mt-1">Google Analytics 4 실시간 데이터</p>
+        </div>
+
+        {ga4Loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-brand-primary/10 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-24 mb-3" />
+                <div className="h-8 bg-gray-200 rounded w-16" />
+              </div>
+            ))}
+          </div>
+        ) : ga4Data?.error && !ga4Data.activeUsers && ga4Data.topPages.length === 0 ? (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 text-yellow-800">
+            GA4 데이터를 불러올 수 없습니다. 서비스 계정을 설정해주세요.
+          </div>
+        ) : (
+          <>
+            {/* 요약 카드 */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-brand-primary/10">
+                <p className="text-sm text-brand-muted mb-1">오늘 활성 사용자</p>
+                <p className="text-3xl font-bold text-brand-primary">{ga4Data?.activeUsers ?? 0}</p>
+              </div>
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-brand-primary/10">
+                <p className="text-sm text-brand-muted mb-1">이번 주 세션 합계</p>
+                <p className="text-3xl font-bold text-brand-secondary">
+                  {ga4Data?.weeklyDaily.reduce((acc, r) => acc + r.sessions, 0) ?? 0}
+                </p>
+              </div>
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-brand-primary/10">
+                <p className="text-sm text-brand-muted mb-1">인기 페이지 1위</p>
+                <p className="text-lg font-bold text-purple-600 truncate">
+                  {ga4Data?.topPages[0]?.pagePath ?? '-'}
+                </p>
+              </div>
+            </div>
+
+            {/* 인기 페이지 TOP 5 */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-brand-primary/10 p-6">
+              <h3 className="text-lg font-bold text-brand-primary mb-4">인기 페이지 TOP 5</h3>
+              {ga4Data && ga4Data.topPages.length > 0 ? (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-brand-muted border-b border-brand-primary/10">
+                      <th className="text-left pb-2 font-medium">페이지 경로</th>
+                      <th className="text-right pb-2 font-medium">조회수</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ga4Data.topPages.map((page, idx) => (
+                      <tr key={idx} className="border-b border-brand-primary/5 last:border-0">
+                        <td className="py-2 text-brand-text truncate max-w-xs">{page.pagePath}</td>
+                        <td className="py-2 text-right font-medium text-brand-primary">{page.views.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-brand-muted text-center py-4">데이터가 없습니다.</p>
+              )}
+            </div>
+
+            {/* 유입 경로 */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-brand-primary/10 p-6">
+              <h3 className="text-lg font-bold text-brand-primary mb-4">유입 경로 (최근 7일)</h3>
+              {ga4Data && ga4Data.trafficSources.length > 0 ? (
+                <div className="space-y-3">
+                  {(() => {
+                    const totalSessions = ga4Data.trafficSources.reduce((sum, s) => sum + s.sessions, 0);
+                    const maxSessions = Math.max(...ga4Data.trafficSources.map(s => s.sessions), 1);
+                    return ga4Data.trafficSources.slice(0, 8).map((src, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <div className="w-32 text-sm text-brand-muted text-right truncate">
+                          {src.source === '(direct)' ? 'Direct' : src.source}
+                          {src.medium && src.medium !== '(none)' && (
+                            <span className="text-brand-muted/60"> / {src.medium}</span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div
+                            className="h-7 rounded-lg bg-brand-primary/80 flex items-center px-3 transition-all duration-500"
+                            style={{ width: `${(src.sessions / maxSessions) * 100}%`, minWidth: src.sessions > 0 ? '40px' : '0' }}
+                          >
+                            <span className="text-xs font-medium text-white">{src.sessions}</span>
+                          </div>
+                        </div>
+                        <div className="w-14 text-xs text-brand-muted text-right">
+                          {totalSessions > 0 ? `${((src.sessions / totalSessions) * 100).toFixed(1)}%` : '0%'}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              ) : (
+                <p className="text-brand-muted text-center py-4">데이터가 없습니다.</p>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ---- CRM 분석 ---- */}
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-brand-primary/10">
@@ -328,6 +487,16 @@ export default function AnalyticsPage(): React.ReactElement {
             <p className="text-center text-brand-muted py-8">데이터가 없습니다.</p>
           )}
         </div>
+
+        {/* Source / Channel Distribution */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-brand-primary/10 p-6 lg:col-span-2">
+          <h2 className="text-lg font-bold text-brand-primary mb-6">유입 채널</h2>
+          {sourceData.length > 0 ? (
+            <PieChart data={sourceData} />
+          ) : (
+            <p className="text-center text-brand-muted py-8">데이터가 없습니다.</p>
+          )}
+        </div>
       </div>
 
       {/* Detailed Stats */}
@@ -358,6 +527,18 @@ export default function AnalyticsPage(): React.ReactElement {
             </div>
           </div>
 
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-brand-text">유입 채널별</p>
+            <div className="space-y-2">
+              {stats && Object.entries(stats.bySource).map(([source, count]) => (
+                <div key={source} className="flex justify-between text-sm">
+                  <span className="text-brand-muted">{source}</span>
+                  <span className="font-medium">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-3 sm:col-span-2">
             <p className="text-sm font-medium text-brand-text">주요 지표</p>
             <div className="grid grid-cols-2 gap-4">
@@ -382,7 +563,7 @@ export default function AnalyticsPage(): React.ReactElement {
                 </p>
               </div>
               <div className="p-4 bg-brand-bg rounded-xl">
-                <p className="text-xs text-brand-muted">보류리</p>
+                <p className="text-xs text-brand-muted">보류</p>
                 <p className="text-2xl font-bold text-gray-600">{stats?.byStatus.HOLD || 0}</p>
               </div>
             </div>

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { getLeadById, updateLead, updateLeadStatus, addLeadNote } from '@/lib/firestore-quotes';
 import { QuoteLead, LeadStatus, LeadPriority } from '@/types/admin';
+import Toast from '@/components/ui/Toast';
 import TodoList from '@/components/crm/TodoList';
 import QuoteEmailPanel from '@/components/crm/QuoteEmailPanel';
 import CustomerStatsPanel from '@/components/crm/CustomerStatsPanel';
@@ -111,6 +112,7 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
   const [isLoading, setIsLoading] = useState(true);
   const [noteContent, setNoteContent] = useState('');
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const loadLead = async () => {
     setIsLoading(true);
@@ -118,26 +120,16 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
     if (result.success && result.data) {
       setLead(result.data);
     } else {
-      alert('리드를 찾을 수 없습니다.');
+      setToast({ message: '리드를 찾을 수 없습니다.', type: 'error' });
       router.push('/admin/quotes');
     }
     setIsLoading(false);
   };
 
   useEffect(() => {
-    const fetchLead = async () => {
-      setIsLoading(true);
-      const result = await getLeadById(id);
-      if (result.success && result.data) {
-        setLead(result.data);
-      } else {
-        alert('리드를 찾을 수 없습니다.');
-        router.push('/admin/quotes');
-      }
-      setIsLoading(false);
-    };
-    fetchLead();
-  }, [id, router]);
+    loadLead();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const handleStatusChange = async (newStatus: LeadStatus) => {
     if (!lead || !user?.email) return;
@@ -146,7 +138,7 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
     if (result.success) {
       loadLead();
     } else {
-      alert(result.error || '상태 변경에 실패했습니다.');
+      setToast({ message: result.error || '상태 변경에 실패했습니다.', type: 'error' });
     }
   };
 
@@ -157,7 +149,7 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
     if (result.success) {
       loadLead();
     } else {
-      alert(result.error || '우선순위 변경에 실패했습니다.');
+      setToast({ message: result.error || '우선순위 변경에 실패했습니다.', type: 'error' });
     }
   };
 
@@ -170,7 +162,7 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
       setNoteContent('');
       loadLead();
     } else {
-      alert(result.error || '노트 추가에 실패했습니다.');
+      setToast({ message: result.error || '노트 추가에 실패했습니다.', type: 'error' });
     }
     setIsSubmittingNote(false);
   };
@@ -196,6 +188,9 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
 
   return (
     <div className="space-y-6">
+      {/* 토스트 알림 */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -212,10 +207,21 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
             견적 #{lead.id.slice(0, 8)}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className={`px-3 py-1.5 rounded-lg text-sm font-medium ${STATUS_LABELS[lead.status].bgColor} ${STATUS_LABELS[lead.status].color}`}>
             {STATUS_LABELS[lead.status].label}
           </span>
+          {lead.status === 'WON' && (
+            <button
+              onClick={() => router.push(`/admin/billing/clients/new?fromLead=${lead.id}`)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-brand-secondary text-white rounded-xl text-sm font-medium hover:bg-brand-secondary/90 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              과금 고객으로 전환
+            </button>
+          )}
         </div>
       </div>
 
@@ -280,6 +286,28 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
                   ))}
                 </div>
               </div>
+              {(lead.utmSource || lead.utmMedium || lead.utmCampaign) && (
+                <div className="sm:col-span-2">
+                  <p className="text-sm text-brand-muted mb-2">유입 경로</p>
+                  <div className="flex flex-wrap gap-2">
+                    {lead.utmSource && (
+                      <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                        소스: {lead.utmSource}
+                      </span>
+                    )}
+                    {lead.utmMedium && (
+                      <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium">
+                        매체: {lead.utmMedium}
+                      </span>
+                    )}
+                    {lead.utmCampaign && (
+                      <span className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">
+                        캠페인: {lead.utmCampaign}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

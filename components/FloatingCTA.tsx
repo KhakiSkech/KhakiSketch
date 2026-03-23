@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { trackCtaClick } from '@/lib/gtag';
 
 const CALENDLY_URL = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/khakisketch/15min';
 
@@ -37,6 +38,7 @@ export default function FloatingCTA() {
   }, [handleScroll]);
 
   const openCalendly = useCallback(() => {
+    trackCtaClick('floating_cta', '무료 상담 예약');
     // Calendly embed script 동적 로드
     if (typeof window !== 'undefined' && !(window as any).Calendly) {
       const link = document.createElement('link');

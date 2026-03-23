@@ -7,6 +7,7 @@ import ConditionalLayout from "@/components/ConditionalLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import NoiseTexture from "@/components/ui/NoiseTexture";
 import CursorGlow from "@/components/ui/CursorGlow";
+import UTMCapture from "@/components/UTMCapture";
 
 // Google Analytics Measurement ID - 실제 ID로 교체 필요
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
@@ -132,6 +133,8 @@ export default function RootLayout({
       >
         {/* Google Analytics */}
         {GA_MEASUREMENT_ID && <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />}
+        {/* UTM Parameter Capture for CRM Attribution */}
+        <UTMCapture />
         {/* JSON-LD Structured Data for SEO */}
         <JsonLd />
         {/* Skip Link for Accessibility */}

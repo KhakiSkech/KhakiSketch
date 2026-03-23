@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { getAllLeads, getLeadStats, deleteLead, updateLeadStatus } from '@/lib/firestore-quotes';
-import { QuoteLead, LeadStatus, LeadPriority } from '@/types/admin';
+import { QuoteLead, LeadStatus, LeadPriority, LeadStats } from '@/types/admin';
+import Toast from '@/components/ui/Toast';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 const STATUS_LABELS: Record<LeadStatus, { label: string; color: string }> = {
   NEW: { label: '접수', color: 'bg-blue-100 text-blue-700' },
@@ -23,17 +25,30 @@ const PRIORITY_LABELS: Record<LeadPriority, { label: string; color: string }> = 
   URGENT: { label: '긴급', color: 'bg-red-100 text-red-700' },
 };
 
+function getSourceBadge(lead: QuoteLead): string {
+  const src = lead.utmSource?.toLowerCase() ?? '';
+  const medium = lead.utmMedium?.toLowerCase() ?? '';
+  if (medium === 'cpc' || medium === 'paid') return '🎯 광고';
+  if (src.includes('google')) return '🔍 구글';
+  if (src.includes('instagram') || src.includes('facebook') || src.includes('meta')) return '📱 SNS';
+  if (src.includes('naver')) return '🔗 네이버';
+  if (src) return `🔗 ${lead.utmSource}`;
+  return '🌐 직접';
+}
+
 export default function QuotesAdminPage(): React.ReactElement {
   const { user } = useAuth();
   const [leads, setLeads] = useState<QuoteLead[]>([]);
-  const [stats, setStats] = useState<{
-    total: number;
-    byStatus: Record<LeadStatus, number>;
-    byPriority: Record<LeadPriority, number>;
-    thisMonth: number;
-  } | null>(null);
+  const [stats, setStats] = useState<LeadStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<LeadStatus | 'ALL'>('ALL');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
   useEffect(() => {
     loadData();
@@ -57,15 +72,21 @@ export default function QuotesAdminPage(): React.ReactElement {
     setIsLoading(false);
   };
 
-  const handleDelete = async (id: string, customerName: string) => {
-    if (!confirm(`'${customerName}' 님의 견적을 삭제하시겠습니까?`)) return;
-
-    const result = await deleteLead(id);
-    if (result.success) {
-      setLeads(leads.filter((l) => l.id !== id));
-    } else {
-      alert(result.error || '삭제에 실패했습니다.');
-    }
+  const handleDelete = (id: string, customerName: string) => {
+    setConfirmState({
+      isOpen: true,
+      title: '견적 삭제',
+      message: `'${customerName}' 님의 견적을 삭제하시겠습니까?`,
+      onConfirm: async () => {
+        setConfirmState((prev) => ({ ...prev, isOpen: false }));
+        const result = await deleteLead(id);
+        if (result.success) {
+          setLeads((prev) => prev.filter((l) => l.id !== id));
+        } else {
+          setToast({ message: result.error || '삭제에 실패했습니다.', type: 'error' });
+        }
+      },
+    });
   };
 
   const handleStatusChange = async (id: string, newStatus: LeadStatus) => {
@@ -75,12 +96,26 @@ export default function QuotesAdminPage(): React.ReactElement {
     if (result.success) {
       loadData();
     } else {
-      alert(result.error || '상태 변경에 실패했습니다.');
+      setToast({ message: result.error || '상태 변경에 실패했습니다.', type: 'error' });
     }
   };
 
   return (
     <div className="space-y-8">
+      {/* 토스트 알림 */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* 확인 모달 */}
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        onClose={() => setConfirmState((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmState.onConfirm}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmLabel="삭제"
+        confirmClassName="bg-red-600 hover:bg-red-700"
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -159,6 +194,7 @@ export default function QuotesAdminPage(): React.ReactElement {
                   <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">고객</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">프로젝트</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">예산/일정</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">유입 경로</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">상태</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">우선순위</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-brand-muted uppercase">접수일</th>
@@ -182,6 +218,14 @@ export default function QuotesAdminPage(): React.ReactElement {
                     <td className="px-6 py-4">
                       <div className="text-sm text-brand-text">{lead.budget}</div>
                       <div className="text-xs text-brand-muted">{lead.timeline}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-brand-text whitespace-nowrap">
+                        {getSourceBadge(lead)}
+                      </span>
+                      {lead.utmCampaign && (
+                        <div className="text-xs text-brand-muted truncate max-w-[120px]">{lead.utmCampaign}</div>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <select
