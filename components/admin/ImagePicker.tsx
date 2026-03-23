@@ -4,6 +4,7 @@ import { logger } from '@/lib/logger';
 import { useState, useEffect, useRef, DragEvent, ChangeEvent } from 'react';
 import { listAllImages, StorageImage, ImageCategory, uploadImage } from '@/lib/storage';
 import { optimizeImage, formatFileSize } from '@/lib/image-optimizer';
+import Toast from '@/components/ui/Toast';
 
 interface ImagePickerProps {
   isOpen: boolean;
@@ -40,6 +41,7 @@ export default function ImagePicker({
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [enableOptimize, setEnableOptimize] = useState(true);
   const [maxWidth, setMaxWidth] = useState(1920);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -169,7 +171,7 @@ export default function ImagePicker({
       handleSelect(url);
     } catch (error) {
       logger.error('업로드 실패:', error);
-      alert('업로드에 실패했습니다.');
+      setToast({ message: '업로드에 실패했습니다.', type: 'error' });
     } finally {
       setIsUploading(false);
     }
@@ -179,6 +181,9 @@ export default function ImagePicker({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* 토스트 알림 */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 

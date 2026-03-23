@@ -188,7 +188,7 @@ export default function AdminDashboardPage(): React.ReactElement {
               href="/admin/quotes"
               className="text-sm text-brand-secondary hover:text-brand-primary transition-colors"
             >
-              전첳 보기
+              전체 보기
             </Link>
           </div>
           <div className="divide-y divide-brand-primary/5">
@@ -225,7 +225,7 @@ export default function AdminDashboardPage(): React.ReactElement {
               href="/admin/portfolio"
               className="text-sm text-brand-secondary hover:text-brand-primary transition-colors"
             >
-              전첳 보기
+              전체 보기
             </Link>
           </div>
           <div className="divide-y divide-brand-primary/5">

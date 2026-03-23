@@ -38,6 +38,7 @@ export default function AdminSettingsPage(): React.ReactElement {
     type: 'success' | 'error' | 'info';
     text: string;
   } | null>(null);
+  const [migrateConfirmText, setMigrateConfirmText] = useState('');
 
   // 알림 설정 로드
   useEffect(() => {
@@ -134,10 +135,6 @@ export default function AdminSettingsPage(): React.ReactElement {
 
   // 마이그레이션 핸들러들
   const handleMigrateAll = async (): Promise<void> => {
-    if (!confirm('정적 데이터를 Firestore로 마이그레이션하시겠습니까?\n기존 데이터가 있으면 덮어씌워집니다.')) {
-      return;
-    }
-
     setIsMigrating(true);
     setMigrationResult({ type: 'info', text: '마이그레이션 진행 중...' });
 
@@ -163,6 +160,7 @@ export default function AdminSettingsPage(): React.ReactElement {
       setMigrationResult({ type: 'error', text: '마이그레이션 중 오류가 발생했습니다.' });
     } finally {
       setIsMigrating(false);
+      setMigrateConfirmText('');
     }
   };
 
@@ -178,6 +176,7 @@ export default function AdminSettingsPage(): React.ReactElement {
       setMigrationResult({ type: 'error', text: '프로젝트 마이그레이션 중 오류 발생' });
     } finally {
       setIsMigrating(false);
+      setMigrateConfirmText('');
     }
   };
 
@@ -193,6 +192,7 @@ export default function AdminSettingsPage(): React.ReactElement {
       setMigrationResult({ type: 'error', text: '글 마이그레이션 중 오류 발생' });
     } finally {
       setIsMigrating(false);
+      setMigrateConfirmText('');
     }
   };
 
@@ -208,6 +208,7 @@ export default function AdminSettingsPage(): React.ReactElement {
       setMigrationResult({ type: 'error', text: '사이트 설정 마이그레이션 중 오류 발생' });
     } finally {
       setIsMigrating(false);
+      setMigrateConfirmText('');
     }
   };
 
@@ -489,6 +490,20 @@ export default function AdminSettingsPage(): React.ReactElement {
             이미 데이터가 있으면 덮어씌워집니다.
           </p>
 
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <p className="text-sm font-medium text-amber-800 mb-2">
+              마이그레이션을 진행하려면 아래에 <span className="font-mono font-bold">MIGRATE</span>를 입력하세요
+            </p>
+            <input
+              type="text"
+              value={migrateConfirmText}
+              onChange={(e) => setMigrateConfirmText(e.target.value)}
+              className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 bg-white"
+              placeholder="MIGRATE"
+              disabled={isMigrating}
+            />
+          </div>
+
           {migrationResult && (
             <div
               className={`flex items-center gap-3 p-4 rounded-xl ${
@@ -516,7 +531,7 @@ export default function AdminSettingsPage(): React.ReactElement {
 
           <button
             onClick={handleMigrateAll}
-            disabled={isMigrating}
+            disabled={isMigrating || migrateConfirmText !== 'MIGRATE'}
             className="w-full px-6 py-3.5 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
           >
             {isMigrating ? (
@@ -537,21 +552,21 @@ export default function AdminSettingsPage(): React.ReactElement {
           <div className="grid grid-cols-3 gap-3">
             <button
               onClick={handleMigrateProjects}
-              disabled={isMigrating}
+              disabled={isMigrating || migrateConfirmText !== 'MIGRATE'}
               className="px-4 py-2.5 bg-brand-primary/10 text-brand-primary font-medium rounded-xl hover:bg-brand-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
             >
               프로젝트만
             </button>
             <button
               onClick={handleMigrateArticles}
-              disabled={isMigrating}
+              disabled={isMigrating || migrateConfirmText !== 'MIGRATE'}
               className="px-4 py-2.5 bg-brand-secondary/10 text-brand-secondary font-medium rounded-xl hover:bg-brand-secondary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
             >
               글만
             </button>
             <button
               onClick={handleMigrateSiteSettings}
-              disabled={isMigrating}
+              disabled={isMigrating || migrateConfirmText !== 'MIGRATE'}
               className="px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
             >
               설정만

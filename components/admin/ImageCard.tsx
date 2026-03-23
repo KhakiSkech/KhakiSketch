@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { StorageImage } from '@/lib/storage';
+import Toast from '@/components/ui/Toast';
 
 interface ImageCardProps {
   image: StorageImage;
@@ -12,6 +13,7 @@ export default function ImageCard({ image, onDelete }: ImageCardProps): React.Re
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const handleCopy = async (): Promise<void> => {
     try {
@@ -19,7 +21,7 @@ export default function ImageCard({ image, onDelete }: ImageCardProps): React.Re
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      alert('URL 복사에 실패했습니다.');
+      setToast({ message: 'URL 복사에 실패했습니다.', type: 'error' });
     }
   };
 
@@ -28,7 +30,7 @@ export default function ImageCard({ image, onDelete }: ImageCardProps): React.Re
     try {
       await onDelete(image.fullPath);
     } catch (err) {
-      alert(err instanceof Error ? err.message : '삭제 실패');
+      setToast({ message: err instanceof Error ? err.message : '삭제 실패', type: 'error' });
     } finally {
       setIsDeleting(false);
       setShowConfirm(false);
@@ -125,6 +127,9 @@ export default function ImageCard({ image, onDelete }: ImageCardProps): React.Re
           </p>
         )}
       </div>
+
+      {/* 토스트 알림 */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* 삭제 확인 모달 */}
       {showConfirm && (
