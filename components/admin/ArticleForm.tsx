@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ArticleFormData, ArticleCategory } from '@/types/admin';
 import { saveArticle, calculateReadingTime } from '@/lib/firestore-articles';
 import { generateSlug } from '@/lib/utils';
-import MarkdownEditor from './MarkdownEditor';
+import WysiwygEditor from './WysiwygEditor';
 import ImagePicker from './ImagePicker';
 
 interface ArticleFormProps {
@@ -46,6 +46,21 @@ export default function ArticleForm({
   const [error, setError] = useState<string | null>(null);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [tagsInput, setTagsInput] = useState(initialData?.tags?.join(', ') || '');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  useEffect(() => {
+    const hasUnsavedChanges =
+      formData.title !== (initialData?.title ?? EMPTY_FORM.title) ||
+      formData.content !== (initialData?.content ?? EMPTY_FORM.content);
+
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [formData, initialData]);
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -53,16 +68,12 @@ export default function ArticleForm({
     setError(null);
 
     try {
-      // 태그 파싱
       const tags = tagsInput
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean);
 
-      // 읽는 시간 계산
       const readingTime = calculateReadingTime(formData.content);
-
-      // slug 생성 (신규 글일 경우)
       const slug = formData.slug || generateSlug(formData.title);
 
       const result = await saveArticle({
@@ -70,6 +81,7 @@ export default function ArticleForm({
         slug,
         tags,
         readingTime,
+        contentFormat: 'html',
       });
 
       if (result.success) {
@@ -91,13 +103,6 @@ export default function ArticleForm({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleTitleChange = (title: string): void => {
-    updateField('title', title);
-    if (!isEdit && !formData.slug) {
-      // 신규 글일 경우 slug 자동 생성 (미리보기)
-    }
-  };
-
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -117,7 +122,7 @@ export default function ArticleForm({
               <input
                 type="text"
                 value={formData.title}
-                onChange={(e) => handleTitleChange(e.target.value)}
+                onChange={(e) => updateField('title', e.target.value)}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-brand-primary/10 focus:outline-none focus:border-brand-secondary"
               />
@@ -135,18 +140,6 @@ export default function ArticleForm({
               />
             </div>
 
-            {isEdit && (
-              <div>
-                <label className="block text-sm font-medium text-brand-text mb-2">Slug</label>
-                <input
-                  type="text"
-                  value={formData.slug}
-                  disabled
-                  className="w-full px-4 py-3 rounded-xl border border-brand-primary/10 bg-brand-bg text-brand-muted"
-                />
-              </div>
-            )}
-
             <div>
               <label className="block text-sm font-medium text-brand-text mb-2">카테고리</label>
               <select
@@ -160,16 +153,6 @@ export default function ArticleForm({
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-brand-text mb-2">발행일</label>
-              <input
-                type="date"
-                value={formData.publishedAt}
-                onChange={(e) => updateField('publishedAt', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-brand-primary/10 focus:outline-none focus:border-brand-secondary"
-              />
             </div>
 
             <div>
@@ -196,6 +179,51 @@ export default function ArticleForm({
               <label htmlFor="featured" className="text-sm font-medium text-brand-text">
                 Featured 글로 설정
               </label>
+            </div>
+
+            {/* 고급 설정 토글 */}
+            <div className="md:col-span-2">
+              <button
+                type="button"
+                onClick={() => setShowAdvanced((v) => !v)}
+                className="flex items-center gap-2 text-sm text-brand-muted hover:text-brand-text transition-colors"
+              >
+                <svg
+                  className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-90' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+                고급 설정
+              </button>
+
+              {showAdvanced && (
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-brand-text mb-2">발행일</label>
+                    <input
+                      type="date"
+                      value={formData.publishedAt}
+                      onChange={(e) => updateField('publishedAt', e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primary/10 focus:outline-none focus:border-brand-secondary"
+                    />
+                  </div>
+
+                  {isEdit && (
+                    <div>
+                      <label className="block text-sm font-medium text-brand-text mb-2">Slug</label>
+                      <input
+                        type="text"
+                        value={formData.slug}
+                        disabled
+                        className="w-full px-4 py-3 rounded-xl border border-brand-primary/10 bg-brand-bg text-brand-muted"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -235,11 +263,10 @@ export default function ArticleForm({
         {/* Content */}
         <section className="bg-white/80 rounded-2xl p-6 border border-brand-primary/10">
           <h2 className="text-lg font-bold text-brand-primary mb-6">본문</h2>
-          <MarkdownEditor
-            value={formData.content}
-            onChange={(value) => updateField('content', value)}
-            placeholder="마크다운 형식으로 본문을 작성하세요..."
-            minHeight="500px"
+          <WysiwygEditor
+            initialContent={formData.content}
+            onChange={(html) => setFormData({ ...formData, content: html })}
+            imageCategory="blog"
           />
         </section>
 

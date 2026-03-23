@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import ArticleCard from '@/components/ui/ArticleCard';
-import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import ContentRenderer from '@/components/ui/ContentRenderer';
 import { useArticle, useArticles } from '@/hooks/useArticles';
 
 const categoryColors: Record<string, { bg: string; text: string }> = {
@@ -129,7 +129,7 @@ export default function BlogDetailClient({ slug }: BlogDetailClientProps) {
         <div className="max-w-3xl mx-auto">
           <ScrollReveal delay={300}>
             <article className="prose prose-lg max-w-none prose-headings:text-brand-primary prose-headings:font-bold prose-p:text-brand-text prose-p:leading-relaxed prose-a:text-brand-secondary prose-a:no-underline hover:prose-a:underline prose-strong:text-brand-primary prose-li:text-brand-text prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-brand-primary prose-pre:bg-gray-900 prose-pre:text-gray-100">
-              <MarkdownRenderer content={article.content} />
+              <ContentRenderer content={article.content} contentFormat={article.contentFormat} />
             </article>
           </ScrollReveal>
         </div>

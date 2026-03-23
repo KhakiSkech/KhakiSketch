@@ -7,6 +7,7 @@ import {
   getDocs,
   getDoc,
   setDoc,
+  updateDoc,
   deleteDoc,
   query,
   orderBy,
@@ -115,7 +116,19 @@ export async function saveArticle(
       updatedAt: now,
     };
 
-    await setDoc(docRef, articleData);
+    const isExisting = createdAt !== now;
+    if (isExisting) {
+      const updateData: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(articleData)) {
+        if (value !== undefined) {
+          updateData[key] = value;
+        }
+      }
+      updateData.updatedAt = now;
+      await updateDoc(docRef, updateData);
+    } else {
+      await setDoc(docRef, articleData);
+    }
 
     return { success: true, slug: data.slug };
   } catch (error) {
@@ -153,7 +166,8 @@ export async function deleteArticle(
  */
 export function calculateReadingTime(content: string): string {
   const wordsPerMinute = 200;
-  const words = content.trim().split(/\s+/).length;
-  const minutes = Math.ceil(words / wordsPerMinute);
+  const plainText = content.replace(/<[^>]*>/g, '').trim();
+  const words = plainText.split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(1, Math.ceil(words / wordsPerMinute));
   return `${minutes}분`;
 }

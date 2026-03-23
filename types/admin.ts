@@ -62,7 +62,8 @@ export interface FirestoreProject {
   description: string;
   category: ProjectCategory;
   thumbnail: ProjectThumbnail;
-  content: string; // 통합된 마크다운 내용
+  content: string;
+  contentFormat?: 'html' | 'markdown';
   images?: { url: string; caption?: string }[];
   featured?: boolean;
   status: ProjectStatus;
@@ -97,6 +98,7 @@ export interface FirestoreArticle {
   featured?: boolean;
   coverImage?: string;
   content: string;
+  contentFormat?: 'html' | 'markdown';
   createdAt?: string;
   updatedAt?: string;
 }
@@ -268,6 +270,9 @@ export interface QuoteLead {
   priority: LeadPriority;
   assignedTo?: string;
   source: LeadSource;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
   
   // 추적
   ipAddress?: string;

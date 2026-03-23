@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useProject, useProjects } from '@/hooks/useProjects';
-import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import ContentRenderer from '@/components/ui/ContentRenderer';
 import ProjectCard from '@/components/ui/ProjectCard';
 import { Pattern1, Pattern2, Pattern3 } from '@/components/ui/Patterns';
 import type { FirestoreProject, ProjectSolutionItem } from '@/types/admin';
@@ -179,7 +179,7 @@ export default function ProjectDetailContent({ id }: ProjectDetailContentProps) 
                         {/* Markdown Content */}
                         {markdownContent ? (
                             <article className="prose prose-lg max-w-none prose-headings:text-brand-primary prose-headings:font-bold prose-p:text-brand-text prose-p:leading-relaxed prose-a:text-brand-secondary prose-strong:text-brand-primary prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100">
-                                <MarkdownRenderer content={markdownContent} />
+                                <ContentRenderer content={markdownContent} contentFormat={project.contentFormat} />
                             </article>
                         ) : (
                             /* Legacy structured fields fallback */

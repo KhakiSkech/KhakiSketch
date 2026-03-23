@@ -8,6 +8,7 @@ import {
   getDocs,
   getDoc,
   setDoc,
+  updateDoc,
   deleteDoc,
   query,
   orderBy,
@@ -138,7 +139,20 @@ export async function saveProject(
       updatedAt: now,
     };
 
-    await setDoc(docRef, projectData);
+    const isExisting = createdAt !== now;
+    if (isExisting) {
+      // 기존 프로젝트: 폼에서 보내지 않는 레거시 필드 보존
+      const updateData: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(projectData)) {
+        if (value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+          updateData[key] = value;
+        }
+      }
+      updateData.updatedAt = now;
+      await updateDoc(docRef, updateData);
+    } else {
+      await setDoc(docRef, projectData);
+    }
 
     return { success: true, id: projectId };
   } catch (error) {
