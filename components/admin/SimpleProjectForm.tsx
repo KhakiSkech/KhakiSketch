@@ -8,7 +8,8 @@ import type { SimpleProjectFormData, ProjectCategory, ProjectStatus, ThumbnailPa
 import { saveProject } from '@/lib/firestore-projects';
 import { uploadImage } from '@/lib/storage';
 import { optimizeImage } from '@/lib/image-optimizer';
-import WysiwygEditor from './WysiwygEditor';
+import dynamic from 'next/dynamic';
+const WysiwygEditor = dynamic(() => import('./WysiwygEditor'), { ssr: false });
 import ProjectCard from '@/components/ui/ProjectCard';
 import { Pattern1, Pattern2, Pattern3 } from '@/components/ui/Patterns';
 
@@ -64,6 +65,14 @@ export default function SimpleProjectForm({
 }: SimpleProjectFormProps): React.ReactElement {
   const router = useRouter();
   const [formData, setFormData] = useState<SimpleProjectFormData>(() => {
+    // 수정 모드: Firestore 데이터 우선 사용 (localStorage 자동저장이 덮어쓰는 문제 방지)
+    if (isEdit && initialData) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(getAutoSaveKey(initialData.id));
+      }
+      return { ...EMPTY_FORM, ...initialData };
+    }
+    // 새 글 모드: localStorage 자동저장 복원
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(getAutoSaveKey(initialData?.id));
       if (saved) {
@@ -120,7 +129,7 @@ export default function SimpleProjectForm({
     setError(null);
 
     try {
-      const result = await saveProject({ ...formData, contentFormat: 'html' } as any);
+      const result = await saveProject({ ...formData, contentFormat: 'html' });
       if (result.success) {
         localStorage.removeItem(getAutoSaveKey(formData.id));
         router.push('/admin/portfolio');

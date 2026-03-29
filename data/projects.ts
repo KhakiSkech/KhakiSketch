@@ -3,6 +3,38 @@ import type { FirestoreProject } from '@/types/admin';
 export type { FirestoreProject as Project } from '@/types/admin';
 
 export const projects: FirestoreProject[] = [
+  // ── Firestore 동기화 (2026-03-27) ──
+  {
+    id: 'binance-futures-선물-자동-매매-플랫폼',
+    title: 'Binance Futures 선물 자동 매매 플랫폼',
+    description: '비동기 처리 방식으로 Multi Bot 운용 환경을 구축하여 24/7 운용되는 트레이딩 플랫폼을 개발하였습니다.',
+    category: 'TRADING',
+    status: 'INTERNAL',
+    featured: true,
+    thumbnail: {
+      imageUrl: 'https://firebasestorage.googleapis.com/v0/b/khakisketch-bf356.firebasestorage.app/o/images%2Fportfolio%2F1771682579801-_____2026-02-21_225414.webp?alt=media&token=46240fce-dacb-4d97-b999-f3b9679fdbc9',
+    },
+    content: '',
+    createdAt: '2026-02-21T14:03:09.334Z',
+    updatedAt: '2026-02-21T14:03:09.334Z',
+  },
+  {
+    id: '건설업체-웹페이지-포트폴리오',
+    title: '건설업체 웹페이지 포트폴리오',
+    description: '충청권 대표 토목 종합건설사 오주건설(주)의 기업 홈페이지를 제작했습니다. 직접 콘텐츠를 운영할 수 있는 CMS 관리자 페이지를 함께 납품하였습니다.',
+    category: 'MVP',
+    period: '1개월, 2026.02 ~ 2026.03',
+    teamSize: '1명',
+    status: 'PUBLISHED',
+    featured: true,
+    thumbnail: {
+      imageUrl: 'https://firebasestorage.googleapis.com/v0/b/khakisketch-bf356.firebasestorage.app/o/images%2Fportfolio%2F1774606347025-_____2026-03-27_191218.webp?alt=media&token=45eadc54-0fb5-44bd-a25e-049533705cbf',
+    },
+    content: '',
+    createdAt: '2026-03-27T10:29:35.628Z',
+    updatedAt: '2026-03-27T10:29:35.628Z',
+  },
+  // ── 기존 샘플 프로젝트 (빌드 시 정적 페이지 생성용) ──
   {
     id: 'crypto-dashboard',
     title: '다전략 암호화폐 리포트 대시보드',

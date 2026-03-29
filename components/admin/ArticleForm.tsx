@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import type { ArticleFormData, ArticleCategory } from '@/types/admin';
 import { saveArticle, calculateReadingTime } from '@/lib/firestore-articles';
 import { generateSlug } from '@/lib/utils';
-import WysiwygEditor from './WysiwygEditor';
+import dynamic from 'next/dynamic';
+const WysiwygEditor = dynamic(() => import('./WysiwygEditor'), { ssr: false });
 import ImagePicker from './ImagePicker';
 
 interface ArticleFormProps {

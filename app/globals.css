@@ -12,6 +12,10 @@
 
 /* Light-only design: no dark mode variables */
 
+@utility border-3 {
+  border-width: 3px;
+}
+
 @theme {
   --color-brand-primary: #263122;
   --color-brand-secondary: #749965;

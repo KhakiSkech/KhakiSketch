@@ -4,7 +4,6 @@ import { logger } from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getNotificationSettings, updateNotificationSettings, type NotificationSettings } from '@/lib/firestore-settings';
-import { migrateProjects, migrateArticles, migrateSiteSettings, migrateAll } from '@/scripts/migrate-to-firestore';
 
 export default function AdminSettingsPage(): React.ReactElement {
   const { changePassword } = useAuth();
@@ -31,14 +30,6 @@ export default function AdminSettingsPage(): React.ReactElement {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
-
-  // 마이그레이션 상태
-  const [isMigrating, setIsMigrating] = useState(false);
-  const [migrationResult, setMigrationResult] = useState<{
-    type: 'success' | 'error' | 'info';
-    text: string;
-  } | null>(null);
-  const [migrateConfirmText, setMigrateConfirmText] = useState('');
 
   // 알림 설정 로드
   useEffect(() => {
@@ -130,85 +121,6 @@ export default function AdminSettingsPage(): React.ReactElement {
       setNotificationResult({ type: 'error', text: '알림 설정 저장에 실패했습니다.' });
     } finally {
       setNotificationSaving(false);
-    }
-  };
-
-  // 마이그레이션 핸들러들
-  const handleMigrateAll = async (): Promise<void> => {
-    setIsMigrating(true);
-    setMigrationResult({ type: 'info', text: '마이그레이션 진행 중...' });
-
-    try {
-      const result = await migrateAll();
-      const projectsOk = result.projects.success;
-      const articlesOk = result.articles.success;
-      const settingsOk = result.siteSettings.success;
-
-      if (projectsOk && articlesOk && settingsOk) {
-        setMigrationResult({
-          type: 'success',
-          text: `마이그레이션 완료! 프로젝트 ${result.projects.count}개, 글 ${result.articles.count}개, 사이트 설정 완료`,
-        });
-      } else {
-        setMigrationResult({
-          type: 'error',
-          text: `일부 마이그레이션 실패. 프로젝트: ${projectsOk ? '✓' : '✗'}, 글: ${articlesOk ? '✓' : '✗'}, 설정: ${settingsOk ? '✓' : '✗'}`,
-        });
-      }
-    } catch (error) {
-      logger.error('Migration error:', error);
-      setMigrationResult({ type: 'error', text: '마이그레이션 중 오류가 발생했습니다.' });
-    } finally {
-      setIsMigrating(false);
-      setMigrateConfirmText('');
-    }
-  };
-
-  const handleMigrateProjects = async (): Promise<void> => {
-    setIsMigrating(true);
-    try {
-      const result = await migrateProjects();
-      setMigrationResult({
-        type: result.success ? 'success' : 'error',
-        text: result.success ? `프로젝트 ${result.count}개 마이그레이션 완료` : '프로젝트 마이그레이션 실패',
-      });
-    } catch {
-      setMigrationResult({ type: 'error', text: '프로젝트 마이그레이션 중 오류 발생' });
-    } finally {
-      setIsMigrating(false);
-      setMigrateConfirmText('');
-    }
-  };
-
-  const handleMigrateArticles = async (): Promise<void> => {
-    setIsMigrating(true);
-    try {
-      const result = await migrateArticles();
-      setMigrationResult({
-        type: result.success ? 'success' : 'error',
-        text: result.success ? `글 ${result.count}개 마이그레이션 완료` : '글 마이그레이션 실패',
-      });
-    } catch {
-      setMigrationResult({ type: 'error', text: '글 마이그레이션 중 오류 발생' });
-    } finally {
-      setIsMigrating(false);
-      setMigrateConfirmText('');
-    }
-  };
-
-  const handleMigrateSiteSettings = async (): Promise<void> => {
-    setIsMigrating(true);
-    try {
-      const result = await migrateSiteSettings();
-      setMigrationResult({
-        type: result.success ? 'success' : 'error',
-        text: result.success ? '사이트 설정 마이그레이션 완료' : '사이트 설정 마이그레이션 실패',
-      });
-    } catch {
-      setMigrationResult({ type: 'error', text: '사이트 설정 마이그레이션 중 오류 발생' });
-    } finally {
-      setIsMigrating(false);
-      setMigrateConfirmText('');
     }
   };
 
@@ -470,112 +382,7 @@ export default function AdminSettingsPage(): React.ReactElement {
         )}
       </div>
 
-      {/* 섹션 3: 데이터 마이그레이션 */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-brand-primary/10 p-6 sm:p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-            <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-brand-primary">데이터 마이그레이션</h2>
-            <p className="text-xs text-brand-muted">정적 데이터를 Firestore로 업로드합니다</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <p className="text-sm text-brand-muted">
-            정적 파일(data/projects.ts, data/articles.ts)의 데이터를 Firestore에 업로드합니다.
-            이미 데이터가 있으면 덮어씌워집니다.
-          </p>
-
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-            <p className="text-sm font-medium text-amber-800 mb-2">
-              마이그레이션을 진행하려면 아래에 <span className="font-mono font-bold">MIGRATE</span>를 입력하세요
-            </p>
-            <input
-              type="text"
-              value={migrateConfirmText}
-              onChange={(e) => setMigrateConfirmText(e.target.value)}
-              className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 bg-white"
-              placeholder="MIGRATE"
-              disabled={isMigrating}
-            />
-          </div>
-
-          {migrationResult && (
-            <div
-              className={`flex items-center gap-3 p-4 rounded-xl ${
-                migrationResult.type === 'success'
-                  ? 'bg-green-50 text-green-700 border border-green-200'
-                  : migrationResult.type === 'error'
-                  ? 'bg-red-50 text-red-600 border border-red-100'
-                  : 'bg-blue-50 text-blue-600 border border-blue-100'
-              }`}
-            >
-              {migrationResult.type === 'success' ? (
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ) : migrationResult.type === 'info' ? (
-                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-              ) : (
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              )}
-              {migrationResult.text}
-            </div>
-          )}
-
-          <button
-            onClick={handleMigrateAll}
-            disabled={isMigrating || migrateConfirmText !== 'MIGRATE'}
-            className="w-full px-6 py-3.5 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
-          >
-            {isMigrating ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                마이그레이션 중...
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                전체 마이그레이션
-              </>
-            )}
-          </button>
-
-          <div className="grid grid-cols-3 gap-3">
-            <button
-              onClick={handleMigrateProjects}
-              disabled={isMigrating || migrateConfirmText !== 'MIGRATE'}
-              className="px-4 py-2.5 bg-brand-primary/10 text-brand-primary font-medium rounded-xl hover:bg-brand-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
-            >
-              프로젝트만
-            </button>
-            <button
-              onClick={handleMigrateArticles}
-              disabled={isMigrating || migrateConfirmText !== 'MIGRATE'}
-              className="px-4 py-2.5 bg-brand-secondary/10 text-brand-secondary font-medium rounded-xl hover:bg-brand-secondary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
-            >
-              글만
-            </button>
-            <button
-              onClick={handleMigrateSiteSettings}
-              disabled={isMigrating || migrateConfirmText !== 'MIGRATE'}
-              className="px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
-            >
-              설정만
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 섹션 4: Firebase Console */}
+      {/* 섹션 3: Firebase Console */}
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-brand-primary/10 p-6 sm:p-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

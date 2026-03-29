@@ -6,7 +6,6 @@ import SkipLink from "@/components/SkipLink";
 import ConditionalLayout from "@/components/ConditionalLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import NoiseTexture from "@/components/ui/NoiseTexture";
-import CursorGlow from "@/components/ui/CursorGlow";
 import UTMCapture from "@/components/UTMCapture";
 
 // Google Analytics Measurement ID - 실제 ID로 교체 필요
@@ -141,8 +140,6 @@ export default function RootLayout({
         <SkipLink />
         {/* Global Noise Texture for Premium Finish */}
         <NoiseTexture />
-        {/* Cursor Glow Effect (desktop only) */}
-        <CursorGlow />
         <ErrorBoundary>
           <ConditionalLayout>{children}</ConditionalLayout>
         </ErrorBoundary>

@@ -15,6 +15,9 @@ export async function generateStaticParams() {
     logger.error('Failed to fetch Firestore articles for static params:', error);
   }
 
+  // 빌드 후 생성된 글을 위한 클라이언트 사이드 폴백 페이지
+  slugs.add('_fallback');
+
   return Array.from(slugs).map((slug) => ({ slug }));
 }
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import SimpleProjectForm from '@/components/admin/SimpleProjectForm';
 import { getProjectById } from '@/lib/firestore-projects';
 import { getProjectById as getStaticProjectById } from '@/data/projects';
@@ -38,7 +38,10 @@ const convertToSimpleFormData = (project: FirestoreProject): SimpleProjectFormDa
 
 export default function EditProjectClient({ id }: EditProjectClientProps): React.ReactElement {
   const router = useRouter();
-  const decodedId = decodeURIComponent(id);
+  // URL에서 실제 id를 읽어옴 (폴백 페이지에서도 올바른 id 사용)
+  const pathname = usePathname();
+  const urlId = pathname?.split('/').filter(Boolean).at(-1) || id;
+  const decodedId = decodeURIComponent(urlId);
   const [project, setProject] = useState<SimpleProjectFormData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

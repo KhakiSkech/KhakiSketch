@@ -68,13 +68,7 @@ export function useFeaturedProjects(): UseFeaturedProjectsReturn {
     const loadProjects = async (): Promise<void> => {
       try {
         const firestoreProjects = await getFeaturedProjects();
-        if (firestoreProjects.length > 0) {
-          setProjects(firestoreProjects);
-        } else {
-          // Featured 프로젝트가 없으면 전체에서 최대 6개 표시
-          const allProjects = await getAllProjects();
-          setProjects(allProjects.slice(0, 6));
-        }
+        setProjects(firestoreProjects.length > 0 ? firestoreProjects : []);
       } catch (err) {
         logger.warn('Featured 프로젝트 로드 실패:', err);
         setProjects([]);

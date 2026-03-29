@@ -182,10 +182,6 @@ export interface SiteSettings {
 }
 
 // ===== Form Types =====
-export interface ProjectFormData extends Omit<FirestoreProject, 'id' | 'createdAt' | 'updatedAt'> {
-  id?: string;
-}
-
 // 간소화된 새 폼 타입
 export interface SimpleProjectFormData {
   id?: string;

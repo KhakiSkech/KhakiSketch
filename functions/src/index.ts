@@ -13,15 +13,5 @@ export { onLeadCreated } from "./notifications/on-lead-created";
 // 활성화 방법: GCP Console에서 Eventarc 서비스 계정에 Storage 권한 부여 → 아래 주석 해제 → 재배포
 // export { onImageUploaded } from "./images/on-image-uploaded";
 
-// Billing: 과금 관리 (스케줄러, 어드민 액션)
-export {
-  billingDailyCycle,
-  sendAdminDailySummary,
-  confirmPayment,
-  waiveInvoice,
-  sendManualNotice,
-  terminateProject,
-} from "./billing";
-
 // Analytics: GA4 데이터 조회
 export { getAnalyticsData } from "./analytics";

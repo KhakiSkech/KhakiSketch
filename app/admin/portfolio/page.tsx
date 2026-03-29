@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { getAllProjects, deleteProject } from '@/lib/firestore-projects';
 import type { FirestoreProject } from '@/types/admin';
 import DeleteConfirmModal from '@/components/admin/DeleteConfirmModal';
+import Toast from '@/components/ui/Toast';
 import ProjectCard from '@/components/ui/ProjectCard';
 import { Pattern1, Pattern2, Pattern3 } from '@/components/ui/Patterns';
 import { getProjectTechString } from '@/lib/utils';
@@ -15,6 +16,7 @@ export default function PortfolioAdminPage(): React.ReactElement {
   const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<FirestoreProject | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [dataSource, setDataSource] = useState<'firestore' | 'static'>('static');
 
   useEffect(() => {
@@ -43,9 +45,12 @@ export default function PortfolioAdminPage(): React.ReactElement {
       const result = await deleteProject(deleteTarget.id);
       if (result.success) {
         setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+        setToast({ message: '프로젝트가 삭제되었습니다.', type: 'success' });
+      } else {
+        setToast({ message: result.error || '삭제에 실패했습니다.', type: 'error' });
       }
     } catch {
-      logger.error('삭제 실패');
+      setToast({ message: '삭제 중 오류가 발생했습니다.', type: 'error' });
     } finally {
       setIsDeleting(false);
       setDeleteTarget(null);
@@ -216,6 +221,7 @@ export default function PortfolioAdminPage(): React.ReactElement {
         itemName={deleteTarget?.title}
         isLoading={isDeleting}
       />
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

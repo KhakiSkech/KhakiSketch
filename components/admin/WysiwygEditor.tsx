@@ -405,21 +405,30 @@ export default function WysiwygEditor({
     [placeholder]
   );
 
-  const parsedInitial = useMemo(() => {
-    if (!initialContent) return undefined;
-    if (typeof initialContent === 'object') return initialContent;
-    return undefined;
+  // JSONContent인 경우만 initialContent로 전달
+  const jsonInitial = useMemo(() => {
+    if (!initialContent || typeof initialContent === 'string') return undefined;
+    return initialContent;
   }, [initialContent]);
 
-  const htmlContent = typeof initialContent === 'string' ? initialContent : undefined;
+  // HTML 문자열인 경우 content prop으로 전달
+  const htmlContent = typeof initialContent === 'string' && initialContent ? initialContent : undefined;
+
+  // 콘텐츠 기반 key로 에디터 강제 재마운트 (편집 모드에서 기존 콘텐츠 로드 보장)
+  const editorKey = useMemo(() => {
+    if (!initialContent) return 'empty';
+    if (typeof initialContent === 'string') return `html-${initialContent.length}-${initialContent.substring(0, 50)}`;
+    return `json-${JSON.stringify(initialContent).substring(0, 50)}`;
+  }, [initialContent]);
 
   return (
-    <EditorRoot>
+    <EditorRoot key={editorKey}>
       {/* 고정 툴바 */}
       <EditorToolbar imageCategory={imageCategory} />
 
       <EditorContent
-        initialContent={parsedInitial}
+        initialContent={jsonInitial}
+        {...(htmlContent ? { content: htmlContent } : {})}
         extensions={extensions}
         editorProps={{
           handleDOMEvents: {
@@ -432,7 +441,6 @@ export default function WysiwygEditor({
               'prose max-w-none min-h-[400px] p-4 focus:outline-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-brand-primary [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-brand-primary [&_h2]:mt-5 [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:text-brand-text [&_p]:leading-relaxed [&_li]:text-brand-text [&_blockquote]:border-l-4 [&_blockquote]:border-brand-secondary [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-brand-muted [&_pre]:bg-gray-900 [&_pre]:text-gray-100 [&_pre]:rounded-xl [&_pre]:p-4 [&_code]:bg-gray-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_hr]:my-6 [&_hr]:border-brand-primary/20',
           },
         }}
-        {...(htmlContent ? { content: htmlContent } : {})}
         onUpdate={({ editor }) => {
           onChange(editor.getHTML());
         }}

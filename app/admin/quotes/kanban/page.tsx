@@ -20,6 +20,7 @@ export default function KanbanBoardPage(): React.ReactElement {
   const { user } = useAuth();
   const [leads, setLeads] = useState<QuoteLead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [draggedLead, setDraggedLead] = useState<QuoteLead | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<LeadStatus | null>(null);
 
@@ -32,6 +33,9 @@ export default function KanbanBoardPage(): React.ReactElement {
     const result = await getAllLeads();
     if (result.success && result.data) {
       setLeads(result.data);
+      setError(null);
+    } else {
+      setError(result.error || '리드를 불러오는데 실패했습니다.');
     }
     setIsLoading(false);
   };
@@ -80,8 +84,26 @@ export default function KanbanBoardPage(): React.ReactElement {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <p className="text-brand-muted">{error}</p>
+          <button onClick={loadLeads} className="px-4 py-2 bg-brand-primary text-white rounded-lg text-sm hover:bg-brand-primary/90">
+            다시 시도
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-brand-primary/10">
         <div className="flex items-center gap-4">

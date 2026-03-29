@@ -10,7 +10,6 @@ export default function Footer() {
           {/* Brand & Slogan */}
           <div className="flex flex-col gap-8 max-w-md">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="KhakiSketch" width={40} height={40} className="w-10 h-10 object-contain invert" />
               <span className="font-bold text-2xl tracking-tight text-white">KhakiSketch</span>
             </div>
             <p className="font-medium text-white/70 text-lg leading-relaxed">

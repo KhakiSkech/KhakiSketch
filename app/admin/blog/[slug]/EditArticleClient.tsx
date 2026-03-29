@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import ArticleForm from '@/components/admin/ArticleForm';
 import { getArticleBySlug } from '@/lib/firestore-articles';
 import { getArticleBySlug as getStaticArticleBySlug } from '@/data/articles';
@@ -14,19 +14,23 @@ interface EditArticleClientProps {
 
 export default function EditArticleClient({ slug }: EditArticleClientProps): React.ReactElement {
   const router = useRouter();
+  // URL에서 실제 slug를 읽어옴 (폴백 페이지에서도 올바른 slug 사용)
+  const pathname = usePathname();
+  const urlSlug = pathname?.split('/').filter(Boolean).at(-1) || slug;
+  const decodedSlug = decodeURIComponent(urlSlug);
   const [article, setArticle] = useState<ArticleFormData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadArticle();
-  }, [slug]);
+  }, [decodedSlug]);
 
   const loadArticle = async (): Promise<void> => {
     setIsLoading(true);
     try {
       // Try Firestore first
-      const firestoreArticle = await getArticleBySlug(slug);
+      const firestoreArticle = await getArticleBySlug(decodedSlug);
       if (firestoreArticle) {
         setArticle(firestoreArticle);
         setIsLoading(false);
@@ -34,7 +38,7 @@ export default function EditArticleClient({ slug }: EditArticleClientProps): Rea
       }
 
       // Fallback to static data
-      const staticArticle = getStaticArticleBySlug(slug);
+      const staticArticle = getStaticArticleBySlug(decodedSlug);
       if (staticArticle) {
         setArticle(staticArticle);
         setIsLoading(false);

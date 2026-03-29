@@ -10,6 +10,26 @@
     ],
     "rewrites": [
       {
+        "source": "/admin/portfolio/**",
+        "destination": "/admin/portfolio/dummy.html"
+      },
+      {
+        "source": "/admin/blog/**",
+        "destination": "/admin/blog/dummy.html"
+      },
+      {
+        "source": "/admin/quotes/**",
+        "destination": "/admin/quotes/dummy.html"
+      },
+      {
+        "source": "/portfolio/**",
+        "destination": "/portfolio/_fallback.html"
+      },
+      {
+        "source": "/blog/**",
+        "destination": "/blog/_fallback.html"
+      },
+      {
         "source": "**",
         "destination": "/404.html"
       }

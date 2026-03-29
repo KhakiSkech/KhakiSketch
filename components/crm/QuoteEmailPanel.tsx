@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getLeadQuoteEmails, createQuoteEmail, sendQuoteEmail } from '@/lib/firestore-quotes';
+import { getLeadQuoteEmails, createQuoteEmail } from '@/lib/firestore-quotes';
+import Toast from '@/components/ui/Toast';
 import type { QuoteEmail, QuoteEmailItem, QuoteLead } from '@/types/admin';
 
 interface QuoteEmailPanelProps {
@@ -15,7 +16,8 @@ export default function QuoteEmailPanel({ lead, userEmail }: QuoteEmailPanelProp
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
-  
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
   const [formData, setFormData] = useState({
     subject: `[견적서] ${lead.projectName || lead.projectType} - Khaki Sketch`,
     content: `안녕하세요, ${lead.customerName}님.
@@ -81,7 +83,7 @@ Khaki Sketch 드림`,
 
   const handleCreate = async () => {
     if (formData.items.length === 0 || formData.items.some(i => !i.description)) {
-      alert('견적 항목을 입력해주세요.');
+      setToast({ message: '견적 항목을 입력해주세요.', type: 'error' });
       return;
     }
 
@@ -106,7 +108,7 @@ Khaki Sketch 드림`,
       setPreviewMode(false);
       await loadEmails();
     } else {
-      alert(result.error || '견적서 생성에 실패했습니다.');
+      setToast({ message: result.error || '견적서 생성에 실패했습니다.', type: 'error' });
     }
     setIsSubmitting(false);
   };
@@ -115,7 +117,7 @@ Khaki Sketch 드림`,
     // 인쇄용 새 창 열기
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.');
+      setToast({ message: '팝업이 차단되었습니다. 팝업 차단을 해제해주세요.', type: 'error' });
       return;
     }
 
@@ -591,6 +593,8 @@ Khaki Sketch 드림`,
           )}
         </div>
       )}
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Email List */}
       {emails.length > 0 && (

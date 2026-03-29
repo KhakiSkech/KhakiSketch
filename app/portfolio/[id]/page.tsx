@@ -15,6 +15,9 @@ export async function generateStaticParams() {
         logger.error('Failed to fetch Firestore projects for static params:', error);
     }
 
+    // 빌드 후 생성된 포트폴리오를 위한 클라이언트 사이드 폴백 페이지
+    ids.add('_fallback');
+
     return Array.from(ids).map((id) => ({ id }));
 }
 

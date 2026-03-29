@@ -13,10 +13,11 @@ import {
   query,
   orderBy,
   where,
+  limit,
 } from 'firebase/firestore';
 import { getFirebaseFirestore } from './firebase';
-import type { FirestoreProject, ProjectFormData } from '@/types/admin';
-import { MOCK_PROJECTS } from './mock-projects';
+import type { FirestoreProject, SimpleProjectFormData } from '@/types/admin';
+import { projects as STATIC_PROJECTS } from '@/data/projects';
 import { withTimeout, generateSlug } from './utils';
 
 const PROJECTS_COLLECTION = 'projects';
@@ -28,7 +29,7 @@ export async function getAllProjects(): Promise<FirestoreProject[]> {
   // Firebase 환경변수가 없으면 Mock 데이터 반환 (빌드 시점 안전성)
   if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || !process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
     logger.warn('Firebase 환경변수 없음 - Mock 데이터 사용');
-    return MOCK_PROJECTS;
+    return STATIC_PROJECTS;
   }
 
   try {
@@ -43,7 +44,7 @@ export async function getAllProjects(): Promise<FirestoreProject[]> {
     })) as FirestoreProject[];
   } catch (error) {
     logger.warn('프로젝트 목록 조회 실패:', error);
-    return MOCK_PROJECTS;
+    return STATIC_PROJECTS;
   }
 }
 
@@ -85,7 +86,7 @@ export async function getFeaturedProjects(): Promise<FirestoreProject[]> {
 export async function getProjectById(id: string): Promise<FirestoreProject | null> {
   // Firebase 환경변수가 없으면 Mock 데이터에서 검색
   if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || !process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
-    return MOCK_PROJECTS.find(p => p.id === id) || null;
+    return STATIC_PROJECTS.find(p => p.id === id) || null;
   }
 
   try {
@@ -107,10 +108,39 @@ export async function getProjectById(id: string): Promise<FirestoreProject | nul
 }
 
 /**
+ * 관련 프로젝트 조회 (같은 카테고리, 최대 limit개)
+ */
+export async function getRelatedProjects(
+  category: string,
+  excludeId: string,
+  maxCount = 3
+): Promise<FirestoreProject[]> {
+  try {
+    const db = getFirebaseFirestore();
+    const projectsRef = collection(db, PROJECTS_COLLECTION);
+    const q = query(
+      projectsRef,
+      where('category', '==', category),
+      orderBy('createdAt', 'desc'),
+      limit(maxCount + 1)
+    );
+    const snapshot = await withTimeout(getDocs(q), 5000);
+    return snapshot.docs
+      .map((doc) => ({ ...doc.data(), id: doc.id }) as FirestoreProject)
+      .filter((p) => p.id !== excludeId)
+      .slice(0, maxCount);
+  } catch {
+    return STATIC_PROJECTS
+      .filter((p) => p.category === category && p.id !== excludeId)
+      .slice(0, maxCount);
+  }
+}
+
+/**
  * 프로젝트 생성/수정
  */
 export async function saveProject(
-  data: ProjectFormData
+  data: SimpleProjectFormData & Record<string, unknown>
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
     const db = getFirebaseFirestore();

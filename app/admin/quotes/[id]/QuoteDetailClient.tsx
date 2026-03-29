@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { getLeadById, updateLead, updateLeadStatus, addLeadNote } from '@/lib/firestore-quotes';
@@ -107,6 +107,9 @@ interface QuoteDetailClientProps {
 
 export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React.ReactElement {
   const router = useRouter();
+  // URL에서 실제 id를 읽어옴 (폴백 페이지에서도 올바른 id 사용)
+  const pathname = usePathname();
+  const actualId = decodeURIComponent(pathname?.split('/').filter(Boolean).at(-1) || id);
   const { user } = useAuth();
   const [lead, setLead] = useState<QuoteLead | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,7 +119,7 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
 
   const loadLead = async () => {
     setIsLoading(true);
-    const result = await getLeadById(id);
+    const result = await getLeadById(actualId);
     if (result.success && result.data) {
       setLead(result.data);
     } else {
@@ -129,7 +132,7 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
   useEffect(() => {
     loadLead();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [actualId]);
 
   const handleStatusChange = async (newStatus: LeadStatus) => {
     if (!lead || !user?.email) return;
@@ -469,7 +472,7 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-brand-primary/10 p-6">
             <h2 className="text-lg font-bold text-brand-primary mb-4">타임라인</h2>
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {lead.activities.slice().reverse().map((activity: any) => (
+              {(lead.activities ?? []).slice().reverse().map((activity: any) => (
                 <div key={activity.id} className="flex gap-3">
                   <div className="flex-shrink-0 w-8 h-8 bg-brand-bg rounded-full flex items-center justify-center text-brand-muted">
                     {ACTIVITY_ICONS[activity.type] || ACTIVITY_ICONS.NOTE}
@@ -509,11 +512,11 @@ export default function QuoteDetailClient({ id }: QuoteDetailClientProps): React
           </div>
 
           {/* Notes List */}
-          {lead.notes.length > 0 && (
+          {(lead.notes ?? []).length > 0 && (
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-brand-primary/10 p-6">
               <h2 className="text-lg font-bold text-brand-primary mb-4">노트</h2>
               <div className="space-y-3 max-h-64 overflow-y-auto">
-                {lead.notes.slice().reverse().map((note: any) => (
+                {(lead.notes ?? []).slice().reverse().map((note: any) => (
                   <div key={note.id} className="p-3 bg-brand-bg rounded-xl">
                     <p className="text-sm text-brand-text">{note.content}</p>
                     <div className="flex items-center gap-2 mt-2 text-xs text-brand-muted">

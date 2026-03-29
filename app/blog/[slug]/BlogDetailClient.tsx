@@ -2,10 +2,14 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import ArticleCard from '@/components/ui/ArticleCard';
-import ContentRenderer from '@/components/ui/ContentRenderer';
-import { useArticle, useArticles } from '@/hooks/useArticles';
+const ContentRenderer = dynamic(() => import('@/components/ui/ContentRenderer'), { ssr: false });
+import { useArticle } from '@/hooks/useArticles';
+import { getRelatedArticles } from '@/lib/firestore-articles';
+import type { FirestoreArticle } from '@/types/admin';
 
 const categoryColors: Record<string, { bg: string; text: string }> = {
   INSIGHT: { bg: 'bg-purple-100', text: 'text-purple-700' },
@@ -26,9 +30,18 @@ interface BlogDetailClientProps {
 }
 
 export default function BlogDetailClient({ slug }: BlogDetailClientProps) {
-  const decodedSlug = decodeURIComponent(slug);
+  // URL에서 실제 slug를 읽어옴 (정적 빌드 폴백 페이지에서도 올바른 slug 사용)
+  const pathname = usePathname();
+  const urlSlug = pathname?.split('/').pop() || slug;
+  const decodedSlug = decodeURIComponent(urlSlug);
   const { article, isLoading, error } = useArticle(decodedSlug);
-  const { articles } = useArticles();
+  const [relatedArticles, setRelatedArticles] = React.useState<FirestoreArticle[]>([]);
+
+  React.useEffect(() => {
+    if (article) {
+      getRelatedArticles(article.category, article.slug, 2).then(setRelatedArticles);
+    }
+  }, [article]);
 
   if (isLoading) {
     return (
@@ -61,11 +74,6 @@ export default function BlogDetailClient({ slug }: BlogDetailClientProps) {
   }
 
   const colorConfig = categoryColors[article.category] || categoryColors.INSIGHT;
-
-  // 관련 글 (같은 카테고리, 현재 글 제외)
-  const relatedArticles = articles
-    .filter((a) => a.category === article.category && a.slug !== article.slug)
-    .slice(0, 2);
 
   return (
     <div className="w-full bg-brand-bg min-h-screen">

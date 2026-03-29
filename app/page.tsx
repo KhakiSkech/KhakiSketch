@@ -1,12 +1,13 @@
 import dynamic from "next/dynamic";
 import Hero from "@/components/Hero";
 import Expertise from "@/components/Expertise";
-import Portfolio from "@/components/Portfolio";
 import Process from "@/components/Process";
 import Comparison from "@/components/Comparison";
 import Stats from "@/components/Stats";
-import Testimonials from "@/components/Testimonials";
 import MidCta from "@/components/MidCta";
+
+const Testimonials = dynamic(() => import("@/components/Testimonials"));
+const Portfolio = dynamic(() => import("@/components/Portfolio"));
 
 // Lazy load below-fold components for better initial load performance
 const FAQ = dynamic(() => import("@/components/FAQ"), {

@@ -12,10 +12,11 @@ import {
   query,
   orderBy,
   where,
+  limit,
 } from 'firebase/firestore';
 import { getFirebaseFirestore } from './firebase';
 import type { FirestoreArticle, ArticleFormData } from '@/types/admin';
-import { MOCK_ARTICLES } from './mock-articles';
+import { articles as STATIC_ARTICLES } from '@/data/articles';
 import { withTimeout, generateSlug } from './utils';
 
 const ARTICLES_COLLECTION = 'articles';
@@ -36,7 +37,7 @@ export async function getAllArticles(): Promise<FirestoreArticle[]> {
     })) as FirestoreArticle[];
   } catch (error) {
     logger.warn('글 목록 조회 실패 (Fallback 사용):', error);
-    return MOCK_ARTICLES;
+    return STATIC_ARTICLES;
   }
 }
 
@@ -60,7 +61,7 @@ export async function getFeaturedArticles(): Promise<FirestoreArticle[]> {
     })) as FirestoreArticle[];
   } catch (error) {
     logger.warn('Featured 글 조회 실패 (Fallback 사용):', error);
-    return MOCK_ARTICLES.filter(a => a.featured);
+    return STATIC_ARTICLES.filter(a => a.featured);
   }
 }
 
@@ -82,7 +83,36 @@ export async function getArticleBySlug(slug: string): Promise<FirestoreArticle |
     return null;
   } catch (error) {
     logger.warn('글 조회 실패 (Fallback 사용):', error);
-    return MOCK_ARTICLES.find(a => a.slug === slug) || null;
+    return STATIC_ARTICLES.find(a => a.slug === slug) || null;
+  }
+}
+
+/**
+ * 관련 글 조회 (같은 카테고리, 최대 limit개)
+ */
+export async function getRelatedArticles(
+  category: string,
+  excludeSlug: string,
+  maxCount = 2
+): Promise<FirestoreArticle[]> {
+  try {
+    const db = getFirebaseFirestore();
+    const articlesRef = collection(db, ARTICLES_COLLECTION);
+    const q = query(
+      articlesRef,
+      where('category', '==', category),
+      orderBy('publishedAt', 'desc'),
+      limit(maxCount + 1)
+    );
+    const snapshot = await withTimeout(getDocs(q), 5000);
+    return snapshot.docs
+      .map((doc) => ({ ...doc.data(), slug: doc.id }) as FirestoreArticle)
+      .filter((a) => a.slug !== excludeSlug)
+      .slice(0, maxCount);
+  } catch {
+    return STATIC_ARTICLES
+      .filter((a) => a.category === category && a.slug !== excludeSlug)
+      .slice(0, maxCount);
   }
 }
 

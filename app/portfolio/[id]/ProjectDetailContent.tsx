@@ -2,8 +2,12 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { useProject, useProjects } from '@/hooks/useProjects';
-import ContentRenderer from '@/components/ui/ContentRenderer';
+import { usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import { useState } from 'react';
+import { useProject } from '@/hooks/useProjects';
+import { getRelatedProjects } from '@/lib/firestore-projects';
+const ContentRenderer = dynamic(() => import('@/components/ui/ContentRenderer'), { ssr: false });
 import ProjectCard from '@/components/ui/ProjectCard';
 import { Pattern1, Pattern2, Pattern3 } from '@/components/ui/Patterns';
 import type { FirestoreProject, ProjectSolutionItem } from '@/types/admin';
@@ -15,14 +19,18 @@ interface ProjectDetailContentProps {
 }
 
 export default function ProjectDetailContent({ id }: ProjectDetailContentProps) {
-    const decodedId = decodeURIComponent(id);
+    // URL에서 실제 id를 읽어옴 (정적 빌드 폴백 페이지에서도 올바른 id 사용)
+    const pathname = usePathname();
+    const urlId = pathname?.split('/').pop() || id;
+    const decodedId = decodeURIComponent(urlId);
     const { project, isLoading, error } = useProject(decodedId);
-    const { projects: allProjects } = useProjects();
+    const [relatedProjects, setRelatedProjects] = useState<FirestoreProject[]>([]);
 
-    // CSR 로드 후 페이지 타이틀 업데이트 (빌드 시 메타데이터 실패 대비)
+    // CSR 로드 후 페이지 타이틀 업데이트 + 관련 프로젝트 로드
     useEffect(() => {
         if (project) {
             document.title = `${project.title} | KhakiSketch Portfolio`;
+            getRelatedProjects(project.category, project.id, 3).then(setRelatedProjects);
         }
     }, [project]);
 
@@ -120,11 +128,6 @@ export default function ProjectDetailContent({ id }: ProjectDetailContentProps) 
 
     // 마크다운 콘텐츠: content(신규) > markdownContent(레거시) 순서
     const markdownContent = project.content || project.markdownContent || '';
-
-    // 관련 프로젝트: 같은 카테고리, 현재 제외, 최대 3개
-    const relatedProjects = allProjects
-        .filter((p) => p.category === project.category && p.id !== project.id)
-        .slice(0, 3);
 
     return (
         <main className="min-h-screen bg-brand-bg pb-20">

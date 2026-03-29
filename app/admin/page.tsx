@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAllProjects } from '@/lib/firestore-projects';
 import { getAllArticles } from '@/lib/firestore-articles';
-import { getAllLeads, getLeadStats } from '@/lib/firestore-quotes';
+import { getAllLeads } from '@/lib/firestore-quotes';
 import TodayTodos from '@/components/crm/TodayTodos';
 import { FirestoreProject, FirestoreArticle, QuoteLead, LeadStatus } from '@/types/admin';
 
@@ -45,27 +45,27 @@ export default function AdminDashboardPage(): React.ReactElement {
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      const [projectsRes, articlesRes, leadsRes, leadStatsRes] = await Promise.all([
+      const [projectsRes, articlesRes, leadsRes] = await Promise.all([
         getAllProjects(),
         getAllArticles(),
         getAllLeads(),
-        getLeadStats(),
       ]);
+
+      const leads = leadsRes.success && leadsRes.data ? leadsRes.data : [];
+      const byStatus: Record<LeadStatus, number> = {
+        NEW: 0, CONTACTED: 0, QUOTED: 0, NEGOTIATING: 0, WON: 0, LOST: 0, HOLD: 0,
+      };
+      leads.forEach((lead) => { byStatus[lead.status]++; });
 
       setStats({
         projects: projectsRes.length,
         articles: articlesRes.length,
-        leads: leadsRes.success && leadsRes.data ? leadsRes.data.length : 0,
-        newLeads: leadStatsRes.success && leadStatsRes.data ? leadStatsRes.data.byStatus.NEW : 0,
+        leads: leads.length,
+        newLeads: byStatus.NEW,
       });
 
-      if (leadsRes.success && leadsRes.data) {
-        setRecentLeads(leadsRes.data.slice(0, 5));
-      }
-
-      if (leadStatsRes.success && leadStatsRes.data) {
-        setLeadStats(leadStatsRes.data);
-      }
+      setRecentLeads(leads.slice(0, 5));
+      setLeadStats({ byStatus });
 
       setRecentProjects(projectsRes.slice(0, 5));
     } catch (error) {
