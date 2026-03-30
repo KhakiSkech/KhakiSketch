@@ -149,8 +149,9 @@ export async function saveArticle(
     const isExisting = createdAt !== now;
     if (isExisting) {
       const updateData: Record<string, unknown> = {};
+      const alwaysInclude = new Set(['content', 'contentFormat']);
       for (const [key, value] of Object.entries(articleData)) {
-        if (value !== undefined) {
+        if (alwaysInclude.has(key) || value !== undefined) {
           updateData[key] = value;
         }
       }

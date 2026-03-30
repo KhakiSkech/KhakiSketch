@@ -173,8 +173,10 @@ export async function saveProject(
     if (isExisting) {
       // 기존 프로젝트: 폼에서 보내지 않는 레거시 필드 보존
       const updateData: Record<string, unknown> = {};
+      // content, contentFormat은 빈 값이어도 항상 저장 (에디터 콘텐츠 보존)
+      const alwaysInclude = new Set(['content', 'contentFormat']);
       for (const [key, value] of Object.entries(projectData)) {
-        if (value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+        if (alwaysInclude.has(key) || (value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0))) {
           updateData[key] = value;
         }
       }

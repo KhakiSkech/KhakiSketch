@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ArticleFormData, ArticleCategory } from '@/types/admin';
 import { saveArticle, calculateReadingTime } from '@/lib/firestore-articles';
-import { generateSlug } from '@/lib/utils';
+import { generateSlug, isContentEmpty } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 const WysiwygEditor = dynamic(() => import('./WysiwygEditor'), { ssr: false });
 import ImagePicker from './ImagePicker';
@@ -69,6 +69,12 @@ export default function ArticleForm({
     setError(null);
 
     try {
+      if (isContentEmpty(formData.content)) {
+        setError('본문 내용을 입력해주세요.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const tags = tagsInput
         .split(',')
         .map((t) => t.trim())
@@ -265,8 +271,9 @@ export default function ArticleForm({
         <section className="bg-white/80 rounded-2xl p-6 border border-brand-primary/10">
           <h2 className="text-lg font-bold text-brand-primary mb-6">본문</h2>
           <WysiwygEditor
-            initialContent={formData.content}
-            onChange={(html) => setFormData({ ...formData, content: html })}
+            initialContent={initialData?.content ?? ''}
+            onChange={(html) => setFormData((prev) => ({ ...prev, content: html }))}
+            editorId={initialData?.slug || 'new-article'}
             imageCategory="blog"
           />
         </section>

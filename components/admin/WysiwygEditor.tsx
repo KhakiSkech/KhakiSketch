@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   EditorRoot,
   EditorContent,
@@ -36,6 +36,8 @@ interface WysiwygEditorProps {
   onChange: (html: string) => void;
   placeholder?: string;
   imageCategory?: ImageCategory;
+  /** 에디터 인스턴스를 식별하는 안정 key (slug, id 등). 이 값이 바뀔 때만 에디터가 재마운트됨 */
+  editorId?: string;
 }
 
 // ===== 고정 툴바 =====
@@ -362,6 +364,7 @@ export default function WysiwygEditor({
   onChange,
   placeholder = '글을 작성하세요. 서식은 상단 툴바를 사용하거나, / 를 입력하여 블록을 추가할 수 있습니다.',
   imageCategory = 'blog',
+  editorId,
 }: WysiwygEditorProps) {
   const uploadFn = useMemo(
     () =>
@@ -405,21 +408,20 @@ export default function WysiwygEditor({
     [placeholder]
   );
 
+  // initialContent를 최초 마운트 시에만 캡처 (이후 변경 무시)
+  const [capturedContent] = useState(() => initialContent);
+
   // JSONContent인 경우만 initialContent로 전달
   const jsonInitial = useMemo(() => {
-    if (!initialContent || typeof initialContent === 'string') return undefined;
-    return initialContent;
-  }, [initialContent]);
+    if (!capturedContent || typeof capturedContent === 'string') return undefined;
+    return capturedContent;
+  }, [capturedContent]);
 
   // HTML 문자열인 경우 content prop으로 전달
-  const htmlContent = typeof initialContent === 'string' && initialContent ? initialContent : undefined;
+  const htmlContent = typeof capturedContent === 'string' && capturedContent ? capturedContent : undefined;
 
-  // 콘텐츠 기반 key로 에디터 강제 재마운트 (편집 모드에서 기존 콘텐츠 로드 보장)
-  const editorKey = useMemo(() => {
-    if (!initialContent) return 'empty';
-    if (typeof initialContent === 'string') return `html-${initialContent.length}-${initialContent.substring(0, 50)}`;
-    return `json-${JSON.stringify(initialContent).substring(0, 50)}`;
-  }, [initialContent]);
+  // 안정 key: editorId(slug/id) 기반. editorId가 바뀔 때만 에디터 재마운트
+  const editorKey = editorId || 'editor';
 
   return (
     <EditorRoot key={editorKey}>

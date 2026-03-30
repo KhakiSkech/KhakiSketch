@@ -32,6 +32,15 @@ export function generateSlug(title: string, maxLength: number = 80): string {
 }
 
 /**
+ * HTML 콘텐츠가 실질적으로 비어있는지 확인
+ * TipTap은 빈 에디터에서 '<p></p>' 등을 반환하므로 태그 제거 후 판별
+ */
+export function isContentEmpty(html: string): boolean {
+  const stripped = html.replace(/<[^>]*>/g, '').trim();
+  return stripped.length === 0;
+}
+
+/**
  * ProjectTech에서 기술 스택 문자열 생성
  * 모든 카테고리(frontend, backend, database, other)를 통합하여 반환
  */

@@ -6,6 +6,7 @@ import Toast from '@/components/ui/Toast';
 import { useRouter } from 'next/navigation';
 import type { SimpleProjectFormData, ProjectCategory, ProjectStatus, ThumbnailPattern } from '@/types/admin';
 import { saveProject } from '@/lib/firestore-projects';
+import { isContentEmpty } from '@/lib/utils';
 import { uploadImage } from '@/lib/storage';
 import { optimizeImage } from '@/lib/image-optimizer';
 import dynamic from 'next/dynamic';
@@ -64,12 +65,16 @@ export default function SimpleProjectForm({
   isEdit = false,
 }: SimpleProjectFormProps): React.ReactElement {
   const router = useRouter();
+  const [sessionKey] = useState(() =>
+    typeof crypto !== 'undefined' ? crypto.randomUUID() : `${Date.now()}`
+  );
+  const autoSaveKey = isEdit
+    ? getAutoSaveKey(initialData?.id)
+    : getAutoSaveKey(initialData?.id || sessionKey);
+
   const [formData, setFormData] = useState<SimpleProjectFormData>(() => {
-    // 수정 모드: Firestore 데이터 우선 사용 (localStorage 자동저장이 덮어쓰는 문제 방지)
+    // 수정 모드: Firestore 데이터 우선 사용
     if (isEdit && initialData) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(getAutoSaveKey(initialData.id));
-      }
       return { ...EMPTY_FORM, ...initialData };
     }
     // 새 글 모드: localStorage 자동저장 복원
@@ -93,13 +98,13 @@ export default function SimpleProjectForm({
   useEffect(() => {
     const timer = setInterval(() => {
       if (formData.title || formData.description || formData.content) {
-        localStorage.setItem(getAutoSaveKey(formData.id), JSON.stringify(formData));
+        localStorage.setItem(autoSaveKey, JSON.stringify(formData));
         setLastSaved(new Date());
       }
     }, 30000);
 
     return () => clearInterval(timer);
-  }, [formData]);
+  }, [formData, autoSaveKey]);
 
   useEffect(() => {
     const hasUnsavedChanges =
@@ -129,9 +134,15 @@ export default function SimpleProjectForm({
     setError(null);
 
     try {
+      if (isContentEmpty(formData.content)) {
+        setError('상세 내용을 입력해주세요.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const result = await saveProject({ ...formData, contentFormat: 'html' });
       if (result.success) {
-        localStorage.removeItem(getAutoSaveKey(formData.id));
+        localStorage.removeItem(autoSaveKey);
         router.push('/admin/portfolio');
       } else {
         setError(result.error || '저장에 실패했습니다.');
@@ -269,8 +280,9 @@ export default function SimpleProjectForm({
         <section className="bg-white/80 rounded-2xl p-6 border border-brand-primary/10">
           <h2 className="text-lg font-bold text-brand-primary mb-6">상세 내용</h2>
           <WysiwygEditor
-            initialContent={formData.content}
+            initialContent={initialData?.content ?? ''}
             onChange={(html) => setFormData((prev) => ({ ...prev, content: html }))}
+            editorId={initialData?.id || 'new-project'}
             imageCategory="portfolio"
           />
         </section>
